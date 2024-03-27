@@ -24,10 +24,8 @@ def fpocket(file_path, op_folder):
         if os.path.exists(op_folder):
             os.rmdir(op_folder)
     
-    print("RUNNING FPOCKET...")
     shutil.copy(file_path, fpocket_path) # moves to fpocket directory
-
-    os.chdir(fpocket_path)
+    os.chdir(fpocket_path)               # change env to fpocket directory
     os.system("fpocket -f "+ file_path)  # runs fpocket
     
     os.rename(fpocket_path+'/'+file[:-4]+'_out',op_folder)
@@ -53,7 +51,7 @@ def pocketdepth(file_path, op_folder):
 
     shutil.copy(file_path,pocketdepth_path) # move file to pocketdepth directory
     os.chdir(pocketdepth_path)              # change env to pocketdepth directory
-    os.system("python PD.py "+ file_name)  # runs pocketdepth
+    os.system("python PD.py "+ file_name)   # runs pocketdepth
  
     os.rename(pocketdepth_path+'/'+file_name[:-4],op_folder)
     os.remove(pocketdepth_path+'/'+file_name)
