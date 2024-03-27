@@ -18,7 +18,7 @@ def fpocket(file_path, op_folder):
     file_name=file_path.split('/')[-1] # just file name
 
     if os.path.exists(op_folder) and os.listdir(op_folder):
-        print(f"FPOCKET RESULT ALREADY EXISTS FOR {file}")
+        print(f"FPOCKET RESULT ALREADY EXISTS FOR {file_name}")
         return
     else:
         if os.path.exists(op_folder):
@@ -26,9 +26,10 @@ def fpocket(file_path, op_folder):
     
     print("RUNNING FPOCKET...")
     shutil.copy(file_path, fpocket_path) # moves to fpocket directory
-    os.chdir(fpocket_path)               # change env to fpocket directory
-    os.system("fpocket -f "+ file_path)  # runs fpocket
 
+    os.chdir(fpocket_path)
+    os.system("fpocket -f "+ file_path)  # runs fpocket
+    
     os.rename(fpocket_path+'/'+file[:-4]+'_out',op_folder)
     os.remove(fpocket_path+'/'+file_name)
 
@@ -41,14 +42,14 @@ def fpocket(file_path, op_folder):
 
 def pocketdepth(file_path, op_folder):
 
+    file_name=file_path.split('/')[-1] # just file name
+
     if os.path.exists(op_folder) and os.listdir(op_folder):
-        print(f"FPOCKET RESULT ALREADY EXISTS FOR {file}")
+        print(f"POCKETDEPTH RESULT ALREADY EXISTS FOR {file_name}")
         return
     else:
         if os.path.exists(op_folder):
             os.rmdir(op_folder)
-
-    file_name=file_path.split('/')[-1] # just file name
 
     shutil.copy(file_path,pocketdepth_path) # move file to pocketdepth directory
     os.chdir(pocketdepth_path)              # change env to pocketdepth directory
@@ -67,8 +68,10 @@ def pocketdepth(file_path, op_folder):
     
 def sitehound(file_path, op_folder):
     
+    file_name=file_path.split('/')[-1] # just file name
+
     if os.path.exists(op_folder) and os.listdir(op_folder):
-        print(f"SITEHOUND RESULT ALREADY EXISTS FOR {file}")
+        print(f"SITEHOUND RESULT ALREADY EXISTS FOR {file_name}")
         return
     
     else:
@@ -76,7 +79,6 @@ def sitehound(file_path, op_folder):
             os.rmdir(op_folder)
             print(f"UPDATING SITEHOUND...")
 
-    file_name=file_path.split('/')[-1]  # just file name
 
     shutil.copy(file_path,sitehound_path)           # move file to sitehound directory
     os.chdir(sitehound_path)                        # change env to sitehound directory
@@ -118,10 +120,13 @@ if __name__ == "__main__":
         
 
         for accession in accession_list:
+            ##print(accession)
             for file in os.listdir(pdb_paths):
             
-                if accession in file:
+                if file.endswith('.pdb') and accession in file:
                     file_address=os.path.join(pdb_paths,file)
+                    ##print(file_address)
+                    ##print()
                     protein_folder=output_path+'/'+file[:-4]
             
                     # fpocket
