@@ -26,6 +26,7 @@ def fpocket(file_path, op_folder):
     
     print("RUNNING FPOCKET...")
     shutil.copy(file_path, fpocket_path) # moves to fpocket directory
+    os.chdir(fpocket_path)               # change env to fpocket directory
     os.system("fpocket -f "+ file_path)  # runs fpocket
 
     os.rename(fpocket_path+'/'+file[:-4]+'_out',op_folder)
