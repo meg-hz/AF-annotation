@@ -105,7 +105,8 @@ if __name__ == "__main__":
 
         # path to where the output folders go
         output_path= os.path.join(root,'/result_pockets') 
-        os.mkdir(output_path)
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
 
         accession_list=[]
 
