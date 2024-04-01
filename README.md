@@ -51,8 +51,8 @@ python AF_residues.py --pdb <path to protein-files-dir> <path to pocket-files-di
 This command creates a folder called `matches` for each protein folder and generates pocket files containing residues common between the output pocket files from all three pipelines
 
 **Note:**
-- this script is written as the next step to [previous code](#PGet.py) and file-handling is also considered accordingly; hence `pocket-files-dir` refers to the path of `result_pockets` 
-- `pocket-files-dir` refers to the directory containing the original .PDB file of the proteins
+- this script is written as the next step to **PGet.py** and file-handling is also considered accordingly- `pocket-files-dir` refers to the path of `result_pockets` 
+- `pocket-files-dir` refers to path of the directory containing the original .PDB file of the proteins
 - this code generates protein pockets for all protein folders in `result_pockets` and the output  files for each protein are stored within the folder itself
 
 **3. To move out pockets with low confidence residues**:
