@@ -1,4 +1,4 @@
-# pocket_compare.py
+# PComp.py
 # single hashes for info. double hashes for debugging/alternate code
 # code to obtain text fike about matching pockets bw sitehound, fpocket and pocketdepth 
 # as well as pocket files with residues matching among all three
@@ -116,7 +116,7 @@ def matches_pdb(input_dir,output_dir):
     # dictionary of matched residues
     pocket_dir=pocket_matches(output_dir)
 
-    for protein_file, items in pocket_dir.items():
+    for protein_file in pocket_dir:
         ##print(f'{protein_file}:{items}')
 
         new=os.path.join(output_dir,protein_file,'all_match')
@@ -126,7 +126,7 @@ def matches_pdb(input_dir,output_dir):
         i=0
         pdb_file = os.path.join(input_dir, protein_file+'.pdb')
             
-        for matched in items:
+        for matched in pocket_dir[protein_file]:
             i+=1
             residues = matched[-1]  # list of matching residues
 
@@ -202,11 +202,11 @@ if __name__ == "__main__":
       
     else:
         print("Usage:")
-        print ("For CSV of matched pockets: \n \t python AF_residues.py --txt <path to dir with pocket files>")
+        print ("For CSV of matched pockets: \n \t python PComp.py --txt <path to dir with pocket files>")
         print()
-        print ("For PDB of consensus pockets: \n \t python AF_residues.py --pdb <path to protein files dir> <path to pocket files dir>")
+        print ("For PDB of consensus pockets: \n \t python PComp.py --pdb <path to protein files dir> <path to pocket files dir>")
         print()
-        print ("For moving pockets with low conf: \n \t python AF_residues.py --lcf <path to dir with pocket files>")
+        print ("For moving pockets with low conf: \n \t python PComp.py --lcf <path to dir with pocket files>")
         print()
         sys.exit()
             
