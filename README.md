@@ -57,7 +57,7 @@ This command creates a folder called `matches` for each protein folder and gener
 
 **3. To move out pockets with low confidence residues**:
 ```
-python AF_residues.py --lcf <path to pocket-files-dir>
+python PComp.py --lcf <path to pocket-files-dir>
 ```
 
 This creates a folder called `low_conf` within the `matches` subfolder for each protein. All consensus pocket files that contain more than 30% residues with lower than 70% confidence score are moved into `low_conf`
