@@ -5,8 +5,8 @@ A collection of scripts used to generate and obtain information from Human prote
 ## Table of Contents
 1. PDB_modules.py** 
 2. Superfamily.py**
-3. [PGet.py](#PGet.py)
-4. [PComp.py](#PComp.py)
+3. PGet.py
+4. PComp.py
 
 ---
 
