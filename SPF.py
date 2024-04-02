@@ -23,7 +23,7 @@ def run_spf(pdb_dir,file_list=None):
     total = len(file_list)    
 
     # overall output directory
-    out_dir= os.path.join(root,'/result_pockets') 
+    out_dir= os.path.join(root,'/protein_results') 
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
 
@@ -40,10 +40,9 @@ def run_spf(pdb_dir,file_list=None):
         if not os.path.exists(file_out):
             os.mkdir(file_out)    
         
-
         work_dir=os.path.join(root,'/superfamily')
         PDBm.get_solo_fasta(file_path,work_dir) # make .fa from .pdb
-        fa_name=file[:4]+"_FA" 
+        fa_name=file[:4] 
 
         os.chdir(work_dir)
         os.system("./superfamily.pl " + file) # run superfamily on the .fa
