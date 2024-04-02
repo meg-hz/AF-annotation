@@ -75,14 +75,17 @@ def get_fragment(path):
         return int(fragment.group(1))
     else:
         return 0
+  
+#---------------------------------------------------------------------------------------------------
+# FUNCTIONS FOR OBTAINING SEQUENCE DATA AS FASTA FILE // FOR ALL PDB FILES
+    
+# returns sequence data
+def get_fasta(path):
 
-# gets required atom data from specific type of lines.
-def get_atom_data(path, mol_type):
- 
-  if mol_type == 'ATOM':
+    # gets required atom data from specific type of lines.
     atom_data=[]
 
-    for line in get_lines(path, mol_type):
+    for line in get_lines(path, 'ATOM'):
         res = line[17:20].strip()
         chain = line[21].strip()
         pos = int(line[22:26].strip())
@@ -91,20 +94,12 @@ def get_atom_data(path, mol_type):
         rcp= [res, chain, pos] 
 
         if rcp not in atom_data:
-          atom_data.append(rcp) 
-
-    return atom_data 
-  
-#---------------------------------------------------------------------------------------------------
-# FUNCTIONS FOR OBTAINING SEQUENCE DATA AS FASTA FILE // FOR ALL PDB FILES
-    
-# returns sequence data
-def get_fasta(path):
+          atom_data.append(rcp)  
 
     seq={} ; starting = None
     r_val=''
 
-    for element in get_atom_data(path,"ATOM"):
+    for element in atom_data(path):
         residue=ref[element[0]]
         chain = element[1]
         position = element[2]
@@ -128,17 +123,18 @@ def get_fasta(path):
 
     return r_val
 
-# writes fasta output for a single file
-def get_solo_fasta(path,out_path=None):
-    
-    if out_path==None:
-        out_path = os.path.dirname(path)
 
-    filename=get_accession(path)+'-F'+str(get_fragment(path))+".fa"
+# writes fasta output for a single file
+def get_solo_fasta(pdb_path,out_path=None):
+
+    if out_path==None:
+        out_path = os.path.dirname(pdb_path)
+
+    filename=pdb_path.split('/')[-1]+".fa"
     output = os.path.join(out_path, filename)
 
     with open(output, "w") as fasta_file:
-        fasta_file.write(get_fasta(path))
+        fasta_file.write(get_fasta(pdb_path))
         
 
 # writes fasta output for proteins with fragment PDB files
@@ -215,7 +211,7 @@ def get_combined_fasta(directory_path):
                         break
         
         # STEP 3.3: output the resultant sequence onto a file
-        op_filename=str(code)+"-Full.fa"
+        op_filename="AF-"+str(code)+"-Full.fa"
         output=os.path.join(out_folder,op_filename)
 
         with open(output,'a') as fasta_file:
