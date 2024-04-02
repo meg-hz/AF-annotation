@@ -13,6 +13,7 @@ fpocket_path=os.path.join(root,'/fpocket')
 sitehound_path=os.path.join(root,'/EasyMIFs_SiteHound_Linux')
 pocketdepth_path=os.path.join(root,'/PocketDepth')
 
+
 #---------------------------------------------------------------------------------------------------
 # POCKET GENERATION PIPELINES AND FILE HANDLING
 
@@ -110,11 +111,8 @@ def main(pdb_paths, accession_list=None):
             if os.path.isfile(file_path) and file.endswith('pdb'):
                 if file not in file_list:
                     accession_list.append(file.strip())
-
-
         
-
-    output_path= os.path.join(root,'/result_pockets') 
+    output_path= os.path.join(root,'/protein_results') 
     if not os.path.exists(output_path):
         os.mkdir(output_path)
 
@@ -143,6 +141,7 @@ def main(pdb_paths, accession_list=None):
                     new_folder= protein_folder + '/' + file[:-4]+'_pkd'
                     pocketdepth(file_address, new_folder)  
             
+    return
 
 #---------------------------------------------------------------------------------------------------
 # MAIN PROGRAM STARTS HERE
@@ -187,5 +186,3 @@ if __name__ == "__main__":
         print("For all files in the folder")
         print("python PGet.py --all <path to input dir>")
         print()
-
-
