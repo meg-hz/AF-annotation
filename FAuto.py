@@ -1,4 +1,4 @@
-# FLAPP.py
+# FAuto.py
 # single hashes for info. double hashes for debugging/alternate code
 # move files to flapp folder + generate pairs.txt + run FLAPP
 
@@ -11,7 +11,7 @@ root= os.getcwd()
 FLAPP_path=os.path.join(root,'FLAPP') 
 
 # obtaining list of addresses of pocket files 
-def AF_add(ip_path):
+def input_add(ip_path):
     arr_of_add=[]
     for accession in os.listdir(ip_path):
         ##print(accession)
@@ -25,7 +25,7 @@ def AF_add(ip_path):
     return arr_of_add
 
 # obtaining list of addresses of CRD files 
-def CRD_add(site2_path):
+def template_add(site2_path):
     arr_of_add=[]
     for file in os.listdir(site2_path):
         file_path=os.path.join(site2_path,file)
@@ -69,15 +69,13 @@ def FLAPP_BS():
     os.mkdir(BS_dir)
     return BS_dir 
 
-def main(pocket_path, crd_path):
+def main(pocket_path, template_path):
 
     # get the file addresses
-    af_temp=AF_add(pocket_path)
+    af_temp=input_add(pocket_path)
+    template_temp=template_add(template_path)
 
-    nrsite_path=os.path.join(crd_path,'CustomDatas','nrsiteActual')
-    crd_temp=CRD_add(nrsite_path)
-
-    write_pairs(af_temp,crd_temp)
+    write_pairs(af_temp,template_temp) #pairs.txt
 
     bindingsite_dir=FLAPP_BS()
     print(f"{bindingsite_dir.split('/')[-1]} Folder Generated")
@@ -86,7 +84,7 @@ def main(pocket_path, crd_path):
         shutil.copy(i,bindingsite_dir)
     print('Pocket files moved')
 
-    for i in crd_temp:
+    for i in template_temp:
         shutil.copy(i,bindingsite_dir)
     print('Template files moved')
 
@@ -117,11 +115,5 @@ if __name__ == "__main__":
         
         main(af_dir,crd_dir)
     else:
-        print("Usage: python automate_FLAPP.py <path to pocket PDB files> <path to SiteDesign directory>")
-
-
-
-
-    
-
+        print("Usage: python FAuto.py <path to pocket-file-dir> <path to template directory>")
         
