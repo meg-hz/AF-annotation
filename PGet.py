@@ -1,6 +1,6 @@
 # PGet.py
 # single hashes for info. double hashes for debugging/alternate code
-# code to run fpocket, sitehound and pocketdepth for files in a given a list of acession IDs
+# code to run fpocket, sitehound and pocketdepth for files in a given a list 
 
 # IMPORTANT: this code works IF sitehound, fpocket & pocketdepth folders
 # as well as the directory with input proteins and this code are in the same root folder
@@ -12,6 +12,9 @@ root= os.getcwd()
 fpocket_path=os.path.join(root,'/fpocket')
 sitehound_path=os.path.join(root,'/EasyMIFs_SiteHound_Linux')
 pocketdepth_path=os.path.join(root,'/PocketDepth')
+
+#---------------------------------------------------------------------------------------------------
+# POCKET GENERATION PIPELINES AND FILE HANDLING
 
 def fpocket(file_path, op_folder):
 
@@ -30,7 +33,7 @@ def fpocket(file_path, op_folder):
     os.chdir(fpocket_path)
     os.system("fpocket -f "+ file_path)  # runs fpocket
     
-    os.rename(fpocket_path+'/'+file[:-4]+'_out',op_folder)
+    os.rename(fpocket_path+'/'+file_name[:-4]+'_out',op_folder)
     os.remove(fpocket_path+'/'+file_name)
 
     print()
@@ -64,7 +67,7 @@ def pocketdepth(file_path, op_folder):
     print()
 
     return
-    
+   
     
 def sitehound(file_path, op_folder):
     
@@ -95,30 +98,25 @@ def sitehound(file_path, op_folder):
     return
 
 #---------------------------------------------------------------------------------------------------
-# MAIN PROGRAM STARTS HERE
+# AUTOMATION 
 
-if __name__ == "__main__":
-    if len(sys.argv) == 3:
+def main(pdb_paths, accession_list=None):
 
-        pdb_paths= sys.argv[1] # path to folder containing input pdb files 
-        filename_list= sys.argv[2] # path to text file with list of desired accession numbers
-
-        # path to where the output folders go
-        output_path= os.path.join(root,'/result_pockets') 
-        if not os.path.exists(output_path):
-            os.mkdir(output_path)
-
+    # if no file_list given, run for all
+    if accession_list==None:
         accession_list=[]
+        for file in os.listdir(pdb_paths):
+            file_path=os.path.join(pdb_paths,file)
+            if os.path.isfile(file_path) and file.endswith('pdb'):
+                if file not in file_list:
+                    accession_list.append(file.strip())
 
-        if filename_list.endswith('.txt'):
-            with open(filename_list,'r') as ref:    # this works if filename_list is a .txt with a list of filenames
-                
-                for line in ref:
-                    if line.split('\n')[0] not in accession_list:
-                        accession_list.append(line.split('\n')[0]) # array of accession numbers
-        else:
-            accession_list.append(filename_list.strip())
+
         
+
+    output_path= os.path.join(root,'/result_pockets') 
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
 
         for accession in accession_list:
             ##print(accession)
@@ -128,8 +126,11 @@ if __name__ == "__main__":
                     file_address=os.path.join(pdb_paths,file)
                     ##print(file_address)
                     ##print()
-                    protein_folder=output_path+'/'+file[:-4]
-            
+                    protein_folder=os.path.join(output_path,file[:-4])
+
+                    if not os.path.exists(protein_folder):
+                        os.mkdir(protein_folder)
+
                     # fpocket
                     new_folder= protein_folder + '/' + file[:-4]+'_fpk'
                     fpocket(file_address, new_folder) 
@@ -141,6 +142,50 @@ if __name__ == "__main__":
                     # pocketdepth
                     new_folder= protein_folder + '/' + file[:-4]+'_pkd'
                     pocketdepth(file_address, new_folder)  
+            
+
+#---------------------------------------------------------------------------------------------------
+# MAIN PROGRAM STARTS HERE
+
+if __name__ == "__main__":
+
+    if len(sys.argv)==4 and sys.argv[1] =='--list':
+        in_dir= sys.argv[2] # path to folder containing input pdb files 
+        file_list= sys.argv[3] # path to text file with list of desired accession numbers
+
+        if not os.path.isdir(in_dir):
+            print("Invalid PDB dir path")
+            exit(1)
+    
+        accession_list=[]
+        if os.path.isfile(file_list) and file_list[:4] in ['.txt', '.tsv', '.csv']:
+            with open(file_list, 'r') as ref:  # this works if file_list is a file with a list of filenames
+                for line in ref:
+                    if line.split('\n')[0] not in accession_list:
+                        accession_list.append(line.split('\n')[0]) # array of file names
+        else:
+            accession_list.append(file_list.strip())
+        
+        main(in_dir,accession_list)
+
+        
+    elif len(sys.argv)==3 and sys.argv[1]=='--all':
+        in_dir= sys.argv[2] # path to folder containing input pdb files 
+
+        if not os.path.isdir(in_dir):
+            print("Invalid PDB dir path")
+            exit(1)
+
+        main(in_dir)  
+
     else:
-        print("Usage: python PGet.py <path to input dir> <protein accession/filename>")
-        print("or: python PGet.py <path to input directory> <path to filename_list.txt>")
+        print("Usage:")
+        print("For a list of files")
+        print("python PGet.py --list <path to input dir> <protein filename>")
+        print("python PGet.py --list <path to input directory> <path to text file with all filenames>")
+        print()
+        print("For all files in the folder")
+        print("python PGet.py --all <path to input dir>")
+        print()
+
+
