@@ -107,9 +107,10 @@ def main(mode,pocket_path, template_path, cores):
     os.chdir(FLAPP_path)
     print("Running FLAPP...")
     print('Generating Binary Files...')
-    os.system(f'conda run -n FLAPP python CreateVectors.py {BS_dir_asvar} {SV_dir_asvar}')
+    os.system(f'conda run -n FLAPP')
+    os.system(f'python CreateVectors.py {BS_dir_asvar} {SV_dir_asvar}')
     print('Generating Alignment File...')
-    os.system(f'conda run -n FLAPP python FLAPP.py {SV_dir_asvar} {pair_file} {outfile_path} {cores}')
+    os.system(f'python FLAPP.py {SV_dir_asvar} {pair_file} {outfile_path} {cores}')
 
     return
 
