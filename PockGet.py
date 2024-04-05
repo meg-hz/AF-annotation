@@ -1,4 +1,4 @@
-# PGet.py
+# PockGet.py
 # single hashes for info. double hashes for debugging/alternate code
 # code to run fpocket, sitehound and pocketdepth for files in a given a list 
 
@@ -13,13 +13,12 @@ fpocket_path=os.path.join(root,'/fpocket')
 sitehound_path=os.path.join(root,'/EasyMIFs_SiteHound_Linux')
 pocketdepth_path=os.path.join(root,'/PocketDepth')
 
-
 #---------------------------------------------------------------------------------------------------
 # POCKET GENERATION PIPELINES AND FILE HANDLING
 
 def fpocket(file_path, op_folder):
 
-    file_name=file_path.split('/')[-1] # just file name
+    file_name=os.path.split(file_path)[-1] # just file name
 
     if os.path.exists(op_folder) and os.listdir(op_folder):
         print(f"FPOCKET RESULT ALREADY EXISTS FOR {file_name}")
@@ -46,7 +45,7 @@ def fpocket(file_path, op_folder):
 
 def pocketdepth(file_path, op_folder):
 
-    file_name=file_path.split('/')[-1] # just file name
+    file_name=os.path.split(file_path)[-1] # just file name
 
     if os.path.exists(op_folder) and os.listdir(op_folder):
         print(f"POCKETDEPTH RESULT ALREADY EXISTS FOR {file_name}")
@@ -72,7 +71,7 @@ def pocketdepth(file_path, op_folder):
     
 def sitehound(file_path, op_folder):
     
-    file_name=file_path.split('/')[-1] # just file name
+    file_name=os.path.split(file_path)[-1] # just file name
 
     if os.path.exists(op_folder) and os.listdir(op_folder):
         print(f"SITEHOUND RESULT ALREADY EXISTS FOR {file_name}")
@@ -141,7 +140,6 @@ def main(pdb_paths, accession_list=None):
                     new_folder= protein_folder + '/' + file[:-4]+'_pkd'
                     pocketdepth(file_address, new_folder)  
             
-    return
 
 #---------------------------------------------------------------------------------------------------
 # MAIN PROGRAM STARTS HERE
@@ -157,10 +155,10 @@ if __name__ == "__main__":
             exit(1)
     
         accession_list=[]
-        if os.path.isfile(file_list) and file_list[:4] in ['.txt', '.tsv', '.csv']:
+        if os.path.isfile(file_list) and file_list[-4:] in ['.txt', '.tsv', '.csv']:
             with open(file_list, 'r') as ref:  # this works if file_list is a file with a list of filenames
                 for line in ref:
-                    if line.split('\n')[0] not in accession_list:
+                    if line.split()[0] not in accession_list:
                         accession_list.append(line.split('\n')[0]) # array of file names
         else:
             accession_list.append(file_list.strip())
@@ -180,9 +178,11 @@ if __name__ == "__main__":
     else:
         print("Usage:")
         print("For a list of files")
-        print("python PGet.py --list <path to input dir> <protein filename>")
-        print("python PGet.py --list <path to input directory> <path to text file with all filenames>")
+        print("python PockGet.py --list <path to input dir> <protein filename>")
+        print("python PockGet.py --list <path to input directory> <path to text file with all filenames>")
         print()
         print("For all files in the folder")
-        print("python PGet.py --all <path to input dir>")
+        print("python PockGet.py --all <path to input dir>")
         print()
+
+
