@@ -1,4 +1,4 @@
-# PComp.py
+# PockComp.py
 # single hashes for info. double hashes for debugging/alternate code
 # code to obtain text fike about matching pockets bw sitehound, fpocket and pocketdepth 
 # as well as pocket files with residues matching among all three
@@ -83,7 +83,13 @@ def pocket_matches(pock_dir):
 
 # generates a TSV of matching pocket files with matching residues
 def matches_txt(pock_dir):
-    output_file=os.path.join(pock_dir,'pocket_matches.txt')
+    output_file=os.path.join(pock_dir,'pocket_matches.tsv')
+
+    count=0
+    while os.path.exists(output_file):
+        count+=1
+        output_file=os.path.join(pock_dir,'pocket_matches'+str(count)+'.tsv')
+
     pocket_dir = pocket_matches(pock_dir)
 
     with open(output_file,'w') as output:
@@ -202,11 +208,11 @@ if __name__ == "__main__":
       
     else:
         print("Usage:")
-        print ("For CSV of matched pockets: \n \t python PComp.py --txt <path to dir with pocket files>")
+        print ("For CSV of matched pockets: \n \t python PockComp.py --txt <path to dir with pocket files>")
         print()
-        print ("For PDB of consensus pockets: \n \t python PComp.py --pdb <path to protein files dir> <path to pocket files dir>")
+        print ("For PDB of consensus pockets: \n \t python PockComp.py --pdb <path to protein files dir> <path to pocket files dir>")
         print()
-        print ("For moving pockets with low conf: \n \t python PComp.py --lcf <path to dir with pocket files>")
+        print ("For moving pockets with low conf: \n \t python PockComp.py --lcf <path to dir with pocket files>")
         print()
         sys.exit()
             
