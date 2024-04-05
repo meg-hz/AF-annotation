@@ -82,7 +82,7 @@ def pocket_matches(pock_dir):
     return all_matches
 
 # generates a TSV of matching pocket files with matching residues
-def matches_txt(pock_dir):
+def matches_tsv(pock_dir):
     output_file=os.path.join(pock_dir,'pocket_matches.tsv')
 
     count=0
@@ -193,9 +193,9 @@ def move_lowconf_pdb(folder_path):
 # MAIN PROGRAM STARTS HERE
 
 if __name__ == "__main__":
-    if len(sys.argv) ==3 and sys.argv[1] == '--txt':
+    if len(sys.argv) ==3 and sys.argv[1] == '--tsv':
             pockets = sys.argv[2]
-            matches_txt(pockets)
+            matches_tsv(pockets)
 
     elif len(sys.argv) ==3 and sys.argv[1] == '--lcf':
             pocket_dir=sys.argv[2]
@@ -208,7 +208,7 @@ if __name__ == "__main__":
       
     else:
         print("Usage:")
-        print ("For CSV of matched pockets: \n \t python PockComp.py --txt <path to dir with pocket files>")
+        print ("For TSV of matched pockets: \n \t python PockComp.py --tsv <path to dir with pocket files>")
         print()
         print ("For PDB of consensus pockets: \n \t python PockComp.py --pdb <path to protein files dir> <path to pocket files dir>")
         print()
