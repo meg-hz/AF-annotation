@@ -47,17 +47,17 @@ def write_pairs(list1, list2):
         filepath = os.path.join(FLAPP_path,'Pairs'+str(count)+'.txt')
     
     with open(filepath,'w') as pairwise:
-        count=0
+        ##count=0
         for file1 in list1:
-            count+=1
-            count1=0
+            ##count+=1
+            ##count1=0
             file1_name=os.path.split(file1)[-1]
             for file2 in list2:
                 file2_name=os.path.split(file2)[-1]
                 pairwise.write(file1_name + '\t' + file2_name +'\n')   
-                count1+=1
-            print(f" List2: {count1}")
-        print(f" List1: {count}")
+                ##count1+=1
+            ##print(f" List2: {count1}")
+        ##print(f" List1: {count}")
 
     print(f"{os.path.split(filepath)[-1]} generated")
     return filepath
