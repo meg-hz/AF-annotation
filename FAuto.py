@@ -6,8 +6,11 @@
 
 import os, shutil, sys
 
-root= os.getcwd() 
+root= os.getcwd()
 FLAPP_path=os.path.join(root,'FLAPP') 
+
+#---------------------------------------------------------------------------------------------------
+# MODULES FOR RUNNING FLAPP
 
 # obtaining list of addresses of pocket files 
 def input_add(ip_path):
@@ -44,14 +47,19 @@ def write_pairs(list1, list2):
         filepath = os.path.join(FLAPP_path,'Pairs'+str(count)+'.txt')
     
     with open(filepath,'w') as pairwise:
+        count=0
         for file1 in list1:
+            count+=1
+            count1=0
             file1_name=os.path.split(file1)[-1]
             for file2 in list2:
                 file2_name=os.path.split(file2)[-1]
-                if file2_name!=file1_name:
-                    pairwise.write(file1_name + '\t' + file2_name +'\n')   
+                pairwise.write(file1_name + '\t' + file2_name +'\n')   
+                count1+=1
+            print(f" List2: {count1}")
+        print(f" List1: {count}")
 
-    print(f"Pairs{count}.txt generated")
+    print(f"{os.path.split(filepath)[-1]} generated")
     return filepath
 
 # Making a New Folder with all binding sites
@@ -67,12 +75,16 @@ def FLAPP_BS():
 def main(mode,pocket_path, template_path, cores):
 
     # get the file addresses
-    af_temp=input_add(pocket_path)
-
     if mode == '--f2temp':
+        af_temp=input_add(pocket_path)
         template_temp=template_add(template_path)
     elif mode == '--f2self':
+        af_temp=input_add(pocket_path)
         template_temp=input_add(template_path)
+    
+    elif mode == '--f2misc':
+        af_temp=template_add(template_path)
+        template_temp=template_add(template_path)
 
     pair_file=os.path.split(write_pairs(af_temp,template_temp))[-1] #pairs.txt
 
@@ -114,6 +126,9 @@ def main(mode,pocket_path, template_path, cores):
 
     return
 
+#---------------------------------------------------------------------------------------------------
+# MODULES FOR PARSING THE OUTFILES
+
 def Fmin_cutoff(outfile,threshold):
     outfile_name=os.path.split(outfile)[-1]
     file_name= outfile_name[:-4]+'_cutoff'+str(threshold)+'.txt'
@@ -123,16 +138,73 @@ def Fmin_cutoff(outfile,threshold):
         with open(outfile, 'r') as read_file:
             lines = read_file.readlines()
 
+            write_file.write(lines[0]) #writing the header line
+
             for line in lines[1:]:
-                # Extract the Fmin which is the 6th component and get the value after the decimal point
+                #ignoring lines where there's no alignment
+                if line.split()[-2]=='NoResidueMatch':
+                    continue 
+
+                # Extract the Fmin (6th component) in terms of %
                 value = int(float(line.split()[5])*100)
-                # Check if the value exceeds the threshold
-                if value >= threshold:
+                if value >= threshold: # Check if the value exceeds the threshold
                     write_file.write(line)
 
+    print(f"{os.path.split(file_name)[-1]} generated.")
+    return file_name
+
+def Fmin_all(outfile):
+    outdir=outfile[:-4]+str("_all")
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
+
+    count=0
+    
+    for threshold in (40,50,60,70,80,90):
+        print(f"Generating threshold files for {threshold}...")
+        shutil.move(Fmin_cutoff(outfile,threshold),outdir)
+        count+=1
+    
+    print(f"All files moved to {os.path.split(outdir)}")
+    return
+             
+def cutoff_analysis_set(outfolder):
+    
+    for file in os.listdir(outfolder):
+        print(f"Reading {file}...")
+        filepath=os.path.join(outfolder,file)
+        cutoff_analysis(filepath)
+
+    print('\nAll analysis files generated')
+
+def cutoff_analysis(filepath):
+    print("Reading File...")
+    with open(filepath,'r') as read_file:
+        filelines= read_file.readlines()
+            
+    pocket_file = filelines[1].split()[0] #name of the pocket file
+    protein=pocket_file.split('-')[1] #accession number of protein
+    value=0 #number of occurances
+
+    tsvname=filepath[:-4]+'_analysis.tsv'
+    with open(tsvname,'w')as write_tsv:
+        write_tsv.write("Accession Number\tPocket File\tNumber of Occurances\n")
+        for line in filelines[1:]:
+            if line.split()[0]== pocket_file:
+                value+=1
+            else:
+                write_tsv.write(f'{protein}\t{pocket_file}\t{value}\n')
+                pocket_file=line.split()[0]
+                protein=pocket_file.split('-')[1]
+                value=1
+        print(f'{os.path.split(tsvname)[-1]} generated')
+
+
+#---------------------------------------------------------------------------------------------------
+# TERMINAL PARSING
 
 if __name__ == "__main__":
-    if len(sys.argv) ==5 and sys.argv[1] == '--f2temp':
+    if len(sys.argv) ==5 and sys.argv[1] in ['--f2temp','--f2misc']:
         mode=sys.argv[1]
         af_dir = sys.argv[2] # path to pocket PDB files
         temp_dir = sys.argv[3] # path to template directory
@@ -145,7 +217,7 @@ if __name__ == "__main__":
         print("Running FLAPP...")
         main(mode,af_dir,temp_dir,core_no)
     
-    elif len(sys.argv)==4 and sys.argv[1]=='--f2self':
+    elif len(sys.argv)==4 and sys.argv[1] in ['--f2self','--f2misc']:
         mode=sys.argv[1]
         af_dir = sys.argv[2]
         core_no= sys.argv[3]
@@ -161,21 +233,47 @@ if __name__ == "__main__":
         outfile_path = sys.argv[2]
         cutoff= sys.argv[3]
 
-        if not (cutoff.isdigit() and 0<int(cutoff)<100):
+        if not (os.path.isfile(outfile_path) and outfile_path.endswith('.txt')):
+            print("Invalid file path. Exiting Code.")
+            sys.exit(1)
+
+        elif not (cutoff.isdigit() and 0<int(cutoff)<100):
+            if cutoff== "-all":
+              Fmin_all(outfile_path)
+              sys.exit(0)
+
             print("Invalid cutoff Value. Exiting Code")
             sys.exit(1)
         
-        elif not (os.path.isfile(outfile_path) and outfile_path.endswith('.txt')):
-            print("Invalid file path. Exiting Code.")
-            sys.exit(1)
-        
         Fmin_cutoff(outfile_path,int(cutoff))  
+    
+    elif sys.argv[1]=='--fset':
+        if len(sys.argv)==3: #in case of single file
+            single_file=sys.argv[2]
+
+            if not (os.path.isfile(single_file) and single_file.endswith('.txt')):
+                print("Invalid file path. Exiting Code.")
+                sys.exit(1)
+            
+            cutoff_analysis(single_file)
+        
+        elif len(sys.argv)==4 and sys.argv[3]=='-all':
+            folderr=sys.argv[2]
+
+            if not os.path.isdir(folderr):
+                print("Invalid file path. Exiting Code.")
+                sys.exit(1) 
+            
+            cutoff_analysis_set(folderr)         
 
     else:
-        print("Usage:")
-        print("To run FLAPP with Pockets against Template Set:")
-        print("\tpython FAuto.py --f2temp <path to pocket-file-dir> <path to template directory> <no of cores>")
-        print("To run FLAPP with Proteins against Itself:")
-        print("\tpython FAuto.py --f2self <path to pocket-file-dir> <no of cores>")
-        print("To get entries within a particular fmin cutoff")
-        print("\t python FAuto.py --fmin <path to alignment file> <cutoff>")
+        print("FAuto.py → USAGE:")
+        print("To run FLAPP:")
+        print("\tpython FAuto.py --f2temp <path to pocket-file-dir> <path to template directory> <no of cores>\t OR")
+        print("\tpython FAuto.py --f2self <path to pocket-file-dir> <no of cores>\n")
+        print("To get entries within a particular fmin cutoff:")
+        print("\tpython FAuto.py --fmin <path to alignment file> <cutoff>\t OR")
+        print("\tpython FAuto.py --fmin <path to alignment file> -all\n")
+        print("To get analysis reports of threshold outfiles:")
+        print("\tpython FAuto.py --fset <path to alignment file>\t OR")
+        print("\tpython FAuto.py --fset <path to alignment folder> -all\n")
