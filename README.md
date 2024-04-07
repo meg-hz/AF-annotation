@@ -1,6 +1,6 @@
 # AF Annotation Code Set
 A collection of scripts used to generate and obtain information from Human protein files retrieved from the Alphafold repository 
-(Details on 6/8 files complete)
+(Details on 7/8 files complete)
 
 ## Table of Contents
 -  Basic Protein related
@@ -14,7 +14,7 @@ A collection of scripts used to generate and obtain information from Human prote
 	2. PockComp.py
 - FLAPP-related
 	1. FAuto.py
-	2. FComp.py**
+	2. FOut.py
 
 ---
 ## UPGet.py
@@ -106,8 +106,7 @@ The output pocket files from each pipeline are added to a new/existing directory
 ```
 python PockComp.py --txt <path to dir with pocket files>
 ```
-This command generates a .tsv file with paths of matching pockets from all three pipelines
-
+This command generates a .tsv file with paths of matching pockets from all three pipelines<br> 
 **2. To get .PDB files of consensus pockets:** 
 ```
 python PockComp.py --pdb <path to protein-files-dir> <path to pocket-files-dir>
@@ -127,11 +126,9 @@ This creates a folder called `low_conf` within the `matches` subfolder for each 
 ---
 ## FAuto.py
 - This code generates the pairs.txt file and to automate the FLAPP command for a set of files.
-- It can also generate output files from the given alignment file where Fmin is within a given cutoff value
-- From the threshold output files generated above, it can also provide information on the number of instances of the aligned proteins as well as their pockets
 ### Usage
 
-**1. To run FLAPP <br>
+**1. To run FLAPP
 a. between pocket files and template files**
 ```
 FAuto.py --f2temp <path to pocket-file-dir> <path to template directory> <no of cores>
@@ -144,33 +141,38 @@ FAuto.py --f2self <path to pocket-file-dir> <no of cores>
 ```
 This generates an .txt alignment file in the `FLAPP` directory with information on alignment between all pocket files
 
-**2. To generate a .txt file from the outfile for Fmin**<br>
-**a. under a particular threshold value**
+**Points To Note:**
+- The environment file within the `FLAPP` directory needs to be setup first. (No need to activate the environment before running the code)
+- This script is written as the next step to `PockGet.py`, hence the file-handling is also considered accordingly- `pocket-files-dir`  refers to the path of `protein_results` directory
+---
+## FOut.py
+- This code generates threshold files from the given alignment file by only extracting alignments where the Fmin is within a given cutoff value
+- From the threshold output files generated above, it can also provide information on the number of instances of the aligned proteins as well as their pockets
+
+**1. To generate threshold file from the outfile for a given Fmin threshold**
 ```
 FAuto.py --fmin <path to alignment file> <cutoff>
 ```
 This generates a .txt file in the `FLAPP` directory with entries only for alignments that are within the inputted cutoff.
 
-**b. for threshold intervals of 40,50,60,70,80 and 90**
+**2. To generate threshold files for intervals of 40,50,60,70,80 and 90**
 ```
 FAuto.py --fmin <path to alignment file> -all
 ```
 This generates a folder containing .txt threshold files in the `FLAPP` directory for a given alignment file for threshold intervals 40 to 90 at intervals of 10 each
 
-**3. To generate reports on protein and pocket instances** <br>
-**a. for a given threshold file**
+**3. To generate reports on protein and pocket instances for a given threshold file**
 ```
 python FAuto.py --fset <path to threshold file>
 ```
 This generates a .tsv file in the same folder as threshold file with information on the number of alignments for each pocket file for a given accession number
 
-**b. for all threshold files in the folder**
+**4. To generate reports on protein and pocket instances for all threshold files in the folder**
 ```
 python FAuto.py --fset <path to folder containing threshold files> -all
 ```
 This generates a collection of .tsv files for each threshold file in the folder with information on the number of alignments for each pocket file for a given accession number
 
 **Points To Note:**
-- The environment file within the `FLAPP` directory needs to be setup first. (No need to activate the environment before running the code)
-- This script is written as the next step to `PockGet.py`, hence the file-handling is also considered accordingly- `pocket-files-dir`  under Usage1.a and Usage1.b refers to the path of `protein_results` directory
+- This script is written as the next step to `FAuto.py`, hence the file-handling is also considered accordingly- the `alignment file` referred to here is the output file generated in `FAuto.py`
 ---
