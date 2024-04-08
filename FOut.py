@@ -6,9 +6,6 @@
 
 import shutil, os, sys
 
-#---------------------------------------------------------------------------------------------------
-# MODULES FOR PARSING THE OUTFILES
-
 def Fmin_cutoff(outfile,threshold):
     outfile_name=os.path.split(outfile)[-1]
     file_name= outfile_name[:-4]+'_cutoff'+str(threshold)+'.txt'
@@ -68,7 +65,7 @@ def cutoff_analysis(filepath):
 
     tsvname=filepath[:-4]+'_analysis.tsv'
     with open(tsvname,'w')as write_tsv:
-        write_tsv.write("Accession Number\tPocket File\tNumber of Occurances\n")
+        write_tsv.write("Accession Number\tPocket File\tNumber of Occurences\n")
         for line in filelines[1:]:
             if line.split()[0]== pocket_file:
                 value+=1
