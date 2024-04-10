@@ -176,13 +176,9 @@ if __name__ == "__main__":
         main(in_dir)  
 
     else:
-        print("Usage:")
-        print("For a list of files")
-        print("python PockGet.py --list <path to input dir> <protein filename>")
-        print("python PockGet.py --list <path to input directory> <path to text file with all filenames>")
-        print()
-        print("For all files in the folder")
-        print("python PockGet.py --all <path to input dir>")
-        print()
-
-
+        print("PockGet.py → USAGE:")
+        print("For a list of files:")
+        print("\tpython PockGet.py --list <path to input dir> <protein filename>")
+        print("\tpython PockGet.py --list <path to input directory> <path to text file with all filenames>")
+        print("For all files in the folder:")
+        print("\tpython PockGet.py --all <path to input dir>")
