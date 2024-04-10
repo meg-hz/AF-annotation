@@ -9,9 +9,6 @@ import os, shutil, sys
 root= os.getcwd()
 FLAPP_path=os.path.join(root,'FLAPP') 
 
-#---------------------------------------------------------------------------------------------------
-# MODULES FOR RUNNING FLAPP
-
 # obtaining list of addresses of pocket files 
 def input_add(ip_path):
     arr_of_add=[]
