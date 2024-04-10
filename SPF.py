@@ -32,17 +32,21 @@ def run_spf(pdb_dir,file_list=None):
         file_path= os.path.join(pdb_dir,file)
 
         #file validation
-        if file not in file_list or not os.path.isfile(file_path) or not file.endswith('.PDB'):
+        if not (os.path.isfile(file_path) and file.endswith('.PDB')):
             continue
+        elif file not in file_list:
+            if file.split('-')[1] not in file_list:
+                continue
+
 
         # generate specific protein output directory
-        file_out= os.path.join(out_dir,file[:4])
+        file_out= os.path.join(out_dir,file[:-4])
         if not os.path.exists(file_out):
             os.mkdir(file_out)    
         
         work_dir=os.path.join(root,'/superfamily')
         PDBm.get_solo_fasta(file_path,work_dir) # make .fa from .pdb
-        fa_name=file[:4] 
+        fa_name=file[:-4] 
 
         os.chdir(work_dir)
         os.system("./superfamily.pl " + file) # run superfamily on the .fa
@@ -69,10 +73,10 @@ if __name__ == "__main__":
             exit(1)
 
         accession_list=[]
-        if os.path.isfile(file_list) and file_list[:4] in ['.txt', '.tsv', '.csv']:
+        if os.path.isfile(file_list) and file_list[-4:] in ['.txt', '.tsv', '.csv']:
             with open(file_list, 'r') as ref:  # this works if file_list is a file with a list of filenames
                 for line in ref:
-                    if line.split('\n')[0] not in accession_list:
+                    if line.split()[0] not in accession_list:
                         accession_list.append(line.split('\n')[0]) # array of file names
         else:
             accession_list.append(file_list.strip())
@@ -89,11 +93,9 @@ if __name__ == "__main__":
         run_spf(in_dir)
     
     else:
-        print("Usage")
-        print("For a list of files")
-        print("python SPF.py --list <path to input dir> <protein filename>")
-        print("python SPF.py --list <path to input directory> <path to text file with all filenames>")
-        print()
-        print("For all files in the folder")
-        print("python SPF.py --all <path to input dir>")
-        print()
+        print("SPF.py → USAGE:")
+        print("For a list of files:")
+        print("\tpython SPF.py --list <path to input dir> <protein filename>\t OR")
+        print("\tpython SPF.py --list <path to input directory> <path to text file with all filenames>")
+        print("For all files in the folder:")
+        print("\tpython SPF.py --all <path to input dir>")
