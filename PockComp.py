@@ -207,12 +207,7 @@ if __name__ == "__main__":
         matches_pdb(indir, outdir)
       
     else:
-        print("Usage:")
-        print ("For TSV of matched pockets: \n \t python PockComp.py --tsv <path to dir with pocket files>")
-        print()
-        print ("For PDB of consensus pockets: \n \t python PockComp.py --pdb <path to protein files dir> <path to pocket files dir>")
-        print()
-        print ("For moving pockets with low conf: \n \t python PockComp.py --lcf <path to dir with pocket files>")
-        print()
-        sys.exit()
-            
+        print("PockComp.py → USAGE:")
+        print ("For TSV of matched pockets: \n\tpython PockComp.py --tsv <path to dir with pocket files>")
+        print ("For PDB of consensus pockets: \n\tpython PockComp.py --pdb <path to protein files dir> <path to pocket files dir>")
+        print ("For moving pockets with low conf:\n\tpython PockComp.py --lcf <path to dir with pocket files>")
