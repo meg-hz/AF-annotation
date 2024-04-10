@@ -123,4 +123,4 @@ if __name__ == "__main__":
         print("\tpython FOut.py --fmin <path to alignment file> -all\n")
         print("To get analysis reports of threshold outfiles:")
         print("\tpython FOut.py --fset <path to threshold file>\t OR")
-        print("\tpython FOut.py --fset <path to folder containing threshold files> -all\n")
+        print("\tpython FOut.py --fset <path to folder with threshold files> -all\n")
