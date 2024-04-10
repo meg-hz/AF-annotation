@@ -70,5 +70,5 @@ if __name__== "__main__":
         result_dir=sys.argv[1]
         get_scop_tsv(result_dir)
     else:
-        print("Usage: python ScopGet.py <path to html file dir>")
-		
+        print("ScopGet.py → USAGE:")
+        print("\tpython ScopGet.py <path to html file dir>")
