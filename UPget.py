@@ -3,6 +3,7 @@
 # run every refseq id through uniprot to obtain protein information
 
 import requests, json, sys, os
+
 root=os.getcwd()
 
 def uniprot(ncbi):
@@ -67,5 +68,6 @@ if __name__=="__main__":
             write_uniprot([list_path])
 
     else:
-        print("Usage:python UPGet.py <path to .txt file with list of refseq IDs>")
-        print("or: python UPGet.py <refseqID>")
+        print("UPGet.py → USAGE:")
+        print("\tpython UPGet.py <path to .txt file with list of refseq IDs>")
+        print("\tpython UPGet.py <refseqID>")
