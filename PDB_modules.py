@@ -3,7 +3,7 @@
 # main function produces output csv with information about all files in alphafold folder
 
 # dependencies
-import re, csv, os, numpy as np, matplotlib.pyplot as plt 
+import re, csv, os, sys, numpy as np, matplotlib.pyplot as plt 
 from collections import defaultdict 
 from math import floor, log10
 from textwrap import wrap
@@ -68,6 +68,7 @@ def get_accession(path):
 
 
 # get fragment number from filename
+# note that this only works because Alphafold filename includes the fragment number
 def get_fragment(path):
     filename = os.path.basename(path)
     fragment = re.search(r'-F(\d+)', str(filename))
@@ -123,23 +124,44 @@ def get_fasta(path):
 
     return r_val
 
-
 # writes fasta output for a single file
 def get_solo_fasta(pdb_path,out_path=None):
 
     if out_path==None:
         out_path = os.path.dirname(pdb_path)
 
-    filename=pdb_path.split('/')[-1]+".fa"
+    filename=os.path.split(pdb_path)[-1][:-4]+".fa"
     output = os.path.join(out_path, filename)
 
     with open(output, "w") as fasta_file:
         fasta_file.write(get_fasta(pdb_path))
-        
+
+
+# writes out fasta for all files in the dir
+def get_all_fasta(directory_path,out_path=None):
+    # note that for get_solo_fasta input function before this- i/p is a file path but here it's the dir path 
+    if out_path==None:
+        out_path = os.path.dirname(directory_path)
+    
+    for file in os.listdir(directory_path):
+        file_path=os.path.join(directory_path,file)
+
+        if not (os.path.isfile(file_path) and file.endswith(".pdb")):
+            continue
+
+        # output file info
+        filename=os.path.split(file)[-1][:-4]+".fa"
+        output = os.path.join(out_path, filename)
+
+        with open(output, "w") as fasta_file:
+            fasta_file.write(get_fasta(file_path))
+           
 
 # writes fasta output for proteins with fragment PDB files
-def get_combined_fasta(directory_path):
-    # note that the get_solo_fasta input is a file path but the input here is the directory path 
+def get_combined_fasta(directory_path,out_path=None):
+
+    if out_path==None:
+        out_path = os.path.dirname(directory_path)
 
     # STEP 1: actually get the duplicates 
     def get_duplicates(directory_path):
@@ -150,8 +172,8 @@ def get_combined_fasta(directory_path):
         #STEP 1.1: get accession IDs of proteins that contain fragment files   
         for file_name in os.listdir(directory_path):
             file_path = os.path.join(directory_path, file_name)
-            if os.path.isfile(file_path):
-                code=re.search(r'AF-(.*?)-',str(file_path)).group(1)
+            if os.path.isfile(file_path) and file.endswith(".pdb"):
+                code=get_accession(file_path)
                 files_by_code[code].append(file_name)
 
         ##non_duplicates={code: file_name for code,file_name in files_by_code.items() if len(file_name)==1}
@@ -163,6 +185,7 @@ def get_combined_fasta(directory_path):
         # sum of len(file_names) in duplicates would be the number of fragment files
 
         # STEP 1.2: sort the filenames on the basis of order of fragment
+        
         for file_list in duplicates.items():
             sorted(file_list, key=get_fragment(file_list))
 
@@ -170,15 +193,18 @@ def get_combined_fasta(directory_path):
         return duplicates
 
 
-    # STEP 2: creating a folder where the fasta files will go 
-    out_folder=os.path.join(directory_path,'fasta_fragments')
-    os.makedirs(out_folder)
+    duplicate_dict=get_duplicates(directory_path) 
+
+    # STEP 2: if more than one protein with fragments, make a folder where o/p fasta files will go
+    if len(duplicate_dict)>1:
+        out_folder=os.path.join(out_path,'fasta_fragments')
+        os.makedirs(out_folder)
+    else:
+        out_folder=out_path
 
     # tracker
     folder_count=0
     file_count=defaultdict(int)
-
-    duplicate_dict=get_duplicates(directory_path) 
 
     # STEP 3: obtaining fasta file per protein/ per accession code
     for code in duplicate_dict.items():
@@ -211,7 +237,9 @@ def get_combined_fasta(directory_path):
                         break
         
         # STEP 3.3: output the resultant sequence onto a file
-        op_filename="AF-"+str(code)+"-Full.fa"
+        # Filename to fit the AF pdb naming format
+        ret_file=file_list[0].split('-')
+        op_filename=ret_file[0]+'-'+ret_file[1]+"-Full"+ret_file[3][:-4]+'.fa'
         output=os.path.join(out_folder,op_filename)
 
         with open(output,'a') as fasta_file:
@@ -255,7 +283,7 @@ def get_metadata(directory_path,op_path=None):
     if op_path==None:
         op_path=directory_path
     
-    csv_file_path=op_path+'.csv'
+    csv_file_path=os.path.join(op_path,'Metadata.csv')
 
     files = os.listdir(directory_path)  # List all files in the folder
 
@@ -296,9 +324,12 @@ def get_metadata(directory_path,op_path=None):
 
 
 # get graph showing residue position vs score 
-def get_conf_graph(path):
+def get_conf_graph(pdb_path,out_path=None):
+
+    if out_path==None:
+        out_path = os.path.dirname(pdb_path)
     
-    arr=get_confscore(path)
+    arr=get_confscore(pdb_path)
     i= len(arr) 
     scale = 10 * (floor(log10(abs(i)))-1)
 
@@ -310,7 +341,7 @@ def get_conf_graph(path):
     fig, ax = plt.subplots(figsize=(12, 10))
     ax.plot(x, y, linewidth=2.0)
 
-    title_text = get_title(path)
+    title_text = get_title(pdb_path)
     wrapped_title = '\n'.join(wrap(title_text, 50))  # Wrap at 20 characters
     ax.set_title(wrapped_title)
 
@@ -320,9 +351,11 @@ def get_conf_graph(path):
 
     ax.grid(True)
 
-    filename="conf_"+path.split("/")[-1].split(".")[0]
+    
+    filename=os.path.split(pdb_path)[-1][:-4]+"_conf"
+    filepath=os.path.join(out_path,filename)
 
-    plt.savefig(filename,dpi=600)
+    plt.savefig(filepath,dpi=600)
     print(f"{filename} generated")
 
     return 
@@ -359,7 +392,7 @@ def get_dist(ligand, path, out_path=None):
     cls_res=list(set(cls_res)) 
     cls_res.sort() 
     
-    filename = ligand+"_"+get_accession(path)+'.pdb'
+    filename = os.path.split(path)[-1][:-4] + "_" + ligand +'.pdb'
     output = os.path.join(out_path, filename)
 
     with open(output, 'w') as f:
@@ -368,3 +401,94 @@ def get_dist(ligand, path, out_path=None):
             f.write(element)
     
     return
+
+#---------------------------------------------------------------------------------------------------
+# TERMINAL PARSING
+
+if __name__=="__main__":
+
+    # for fasta  
+    if len(sys.argv) in (4,5) and sys.argv[1] == '--fasta':
+
+        in_path=sys.argv[3]
+        if len(sys.argv)==5:
+            out_path = sys.argv[4]
+            if not os.path.isdir(out_path):
+                print("Invalid Output Path. Exiting Code")
+        else: 
+            out_path=None
+        
+        if sys.argv[2]== '-file':
+            if not (os.path.isfile(in_path) and in_path.endswith('.pdb')):
+                print("Invalid File Path. Exiting Code")
+                sys.exit(1)
+            get_solo_fasta(in_path,out_path)
+        
+        elif sys.argv[2]== '-all':
+            if not os.path.isdir(in_path):
+                print("Invalid Directory Path. Exiting Code")
+                sys.exit(1)
+            get_all_fasta(in_path,out_path)
+        
+        elif sys.argv[2]== '-frag':
+            if not os.path.isdir(in_path):
+                print("Invalid Directory Path. Exiting Code")
+                sys.exit(1)
+            get_combined_fasta(in_path,out_path)
+    
+    # for metadata and confidence score  
+    elif len(sys.argv) in (3,4) and sys.argv[1] in ('--metadata','--conf'):
+        
+        in_path=sys.argv[2]
+
+        if len(sys.argv)==3:
+            out_path = sys.argv[4]
+            if not os.path.isdir(out_path):
+                print("Invalid Output Path. Exiting Code")
+                sys.exit(1)
+        else: 
+            out_path=None
+
+
+        if sys.argv[1] == '--metadata':
+            if not os.path.isdir(in_path):
+                print("Invalid Directory Path. Exiting Code")
+                sys.exit(1)
+            get_metadata(in_path,out_path)
+        
+        elif sys.argv[1] == '--conf':
+            if not os.path.isfile(in_path):
+                print("Invalid File Path. Exiting Code")
+                sys.exit(1)
+            get_conf_graph(in_path,out_path)
+        
+    # for getting binding site
+    elif  len(sys.argv) in (4,5) and sys.argv[1]=='--bsite':
+        ligand=sys.argv[2]
+        in_path=sys.argv[3]
+
+        if not os.path.isfile(in_path):
+            print("Invalid File Path. Exiting Code")
+            sys.exit(1)
+        elif len(sys.argv)==4:
+            out_path = sys.argv[4]
+            if not os.path.isdir(out_path):
+                print("Invalid Output Path. Exiting Code")
+                sys.exit(1)
+        else: 
+            out_path=None
+
+        get_dist(ligand, in_path, out_path=None)
+    
+    else:
+        print("PDB_modules.py → USAGE:")
+        print("To generate Fasta from PDB files")
+        print("\tpython PDB_modules.py --fasta -file <path to pdb file> <path to output dir/ optional>")
+        print("\tpython PDB_modules.py --fasta -all <path to dir with pdb files> <path to output dir/ optional>")
+        print("\tpython PDB_modules.py --fasta -frag <path to dir with fragment files> <path to output dir/ optional>")
+        print("To obtain information of all files in the folder")
+        print("\tpython PDB_modules.py --metadata <path to dir with pdb files> <path to output dir/ optional>")
+        print("To generate Residue v/s Confidence graph for a .pdb file")
+        print("\tpython PDB_modules.py --conf <path to pdb file> <path to output dir/ optional>")
+        print("To generate an output PDB with only binding site region for a ligand")
+        print("\tpython PDB_modules.py --bsite <HETATM code> <path to pdb file> <path to output dir/ optional>")
