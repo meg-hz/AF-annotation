@@ -1,6 +1,5 @@
 # AF Annotation Code Set
 A collection of scripts used to generate and obtain information from Human protein files retrieved from the Alphafold repository 
-(Details on 7/8 files complete)
 
 ## Table of Contents
 -  Basic Protein related
