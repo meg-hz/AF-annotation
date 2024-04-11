@@ -30,23 +30,36 @@ def uniprot(ncbi):
     
     return f'{acc}\t{name}\t{geneID}'
 
-def write_uniprot(refseq_list):
+def write_uniprot(refseq_list,out_path):
 
     count=0
     filename='UP_List.txt'
-    while os.path.exists(os.path.join(root,filename)):
+
+    while os.path.exists(os.path.join(out_path,filename)):
         count=+1
         filename='UP_List'+str(count)+'.txt'
+    
+    file_path=os.path.join(out_path,filename) 
 
-    with open(filename,'w') as out_file:
+    with open(file_path,'w') as out_file:
+        out_file.writelines(f"Query\tAccession Number\tProtein Name\tGene ID\n")
         for query in refseq_list:
-            out_file.writelines(f"{query}\t{uniprot(query)}")
+            out_file.writelines(f"{query}\t{uniprot(query)}\n")
     
     return
 
+
 if __name__=="__main__":
-    if len(sys.argv)==2:
+    if len(sys.argv)in (2,3):
         list_path=sys.argv[1]
+        
+        if len(sys.argv)==3:
+            out_path=sys.argv[2]
+            print(out_path)
+            if not os.path.isdir(out_path):
+                print("Invalid output path. Exiting Code.")
+        else:
+            out_path=root
 
         if os.path.exists(list_path):
 
@@ -62,12 +75,18 @@ if __name__=="__main__":
                         if line.split()[0] not in querylist:
                             querylist.append(line.split()[0])
 
-                    write_uniprot(querylist)
+                    write_uniprot(querylist,out_path)
 
         else:
-            write_uniprot([list_path])
+            write_uniprot([list_path],out_path)
+
+        
 
     else:
         print("UPGet.py → USAGE:")
-        print("\tpython UPGet.py <path to .txt file with list of refseq IDs>")
+        print("For Single Query:")
         print("\tpython UPGet.py <refseqID>")
+        print("\tpython UPGet.py <refseqID> <output dir>")
+        print("For a Text File with a List of Queries:")
+        print("\tpython UPGet.py <path to .txt file with list of refseq IDs>")
+        print("\tpython UPGet.py <path to .txt file with list of refseq IDs> <output dir>")
