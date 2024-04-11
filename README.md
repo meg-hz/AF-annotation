@@ -4,11 +4,10 @@ A collection of scripts used to generate and obtain information from Human prote
 
 ## Table of Contents
 -  Basic Protein related
-	1. PDB_modules.py** 
+	1. PDB_modules.py
 	2. UPGet.py
 - Superfamily-related
-	1. SPF.py
-	2. ScopGet.py
+	1. ScopGet.py
 - Pocket-related
 	1. PockGet.py 
 	2. PockComp.py
@@ -22,55 +21,57 @@ This code searches through the Uniprot database for a protein given a particular
 ### Usage
 **1. For a single query**
 ```
-python UPget.py <query> 
+python UPget.py <query>   
+```
+or
+```
+python UPGet.py <refseqID> <output dir>
 ```
 
 **2. For a list of queries**
 ```
-python UPget.py <path to .txt file with queries> 
+python UPget.py <path to .txt file with queries>
+```
+or
+```
+python UPget.py <path to .txt file with queries> <output dir>
 ```
 
 **Points To Note:**
 - This code was initially written to obtain protein details for a given RefSeq ID, hence only single word query input is accepted
 ---
-## SPF.py
-This code runs the `superfamily.pl` script for a set of proteins when given a filename or a list of file names
-### Usage
-**1. For a single file:**
-```
-python SPF.py --list <path to input dir> <protein filename>
-```
-
-**2. For a set of files:**
-```
-python SPF.py --list <path to input directory> <path to .txt file containing file names>
-```
-
-**3. For all files in the folder**
-```
-python SPF.py --all <path to input directory> 
-```
-
-The output files are added to the protein subfolders in the new/existing `protein_results` directory present in the working directory.
-
-**Points To Note:**
-- Setting up [Superfamily Scripts](https://supfam.mrc-lmb.cam.ac.uk/SUPERFAMILY/howto_use_models.html). 
-- The `superfamily.pl` script runs requires `hmmer-3.1b2`. 
-- The updated SCOP parse-able files are available [here](http://scop.mrc-lmb.cam.ac.uk/legacy/parse/) (need to be renamed to remove the underscore and version number)
-- The Superfamily folder and `SPF.py` code must be in the same parent folder. 
-
-- This code uses a `get_fasta()` module from `PDB_modules.py`. Hence, that file also needs to be present in the same folder
----
 ## ScopGet.py
-This code analyzes the html output from the `Superfamily.pl` script extracts SCOP IDs with for the corresponding proteins in the file
+This code generates the input fasta file for `Superfamily` webtool and analyzes the machine readable output file
 ### Usage
+**1. To get Fasta file input for all files in a folder**
 ```
-python ScopGet.py <path to html-files-dir>
+python ScopGet.py --all <input dir>
 ```
-The output `ScopList.tsv` contains  filename with corresponding list of unique scop IDs
+or
+```
+python ScopGet.py --all <input dir> <output dir>
+```
+
+**2. To get Fasta file input for a list of files in a folder**
+```
+python ScopGet.py --list <input dir> <text file containing list>
+```
+or
+```
+python ScopGet.py --list <input dir> <text file containing list> <output dir>
+```
+
+**3. To analyze output from Superfamily Web Tool**
+```
+python ScopGet.py --spf <input file>
+```
+or
+```
+python ScopGet.py --spf <input file> <output dir>
+```
 
 **Points To Note:**
-- This script is written as the next step to `SPF.py`, hence the file-handling is also considered accordingly- `html-files-dir` refers to the path of the `protein_results` directory
+- The Superfamily Web Tool is accessible [here](https://supfam.mrc-lmb.cam.ac.uk/SUPERFAMILY/hmm.html)
 ---
 ## PockGet.py
 - This code runs `Fpocket`, `Sitehound` and `PocketDepth` for a single protein or a set of proteins when given a filename or a list of file names.
@@ -128,14 +129,13 @@ This creates a folder called `low_conf` within the `matches` subfolder for each 
 - This code generates the pairs.txt file and to automate the FLAPP command for a set of files.
 ### Usage
 
-**1. To run FLAPP
-a. between pocket files and template files**
+**1. To run FLAPP between pocket files and template files**
 ```
 FAuto.py --f2temp <path to pocket-file-dir> <path to template directory> <no of cores>
 ```
 This generates an .txt alignment file in the `FLAPP` directory with information on alignment between the pocket files and template files.
 
-**b. only among the pocket files**
+**2.. To run FLAPP only among the pocket files**
 ```
 FAuto.py --f2self <path to pocket-file-dir> <no of cores>
 ```
