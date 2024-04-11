@@ -1,6 +1,6 @@
 import os, sys, PDB_modules as PDBm
 
-def single_fasta(mode,in_dir,out_dir,ref_file=None):
+def fasta_for_spf(mode,in_dir,out_dir,ref_file=None):
 
     listoffiles=[]
 
@@ -64,6 +64,35 @@ def single_fasta(mode,in_dir,out_dir,ref_file=None):
     print("Fasta Files written")
 
 
+def spf_out(spf,outdir=None):
+    if outdir==None:
+        outdir = os.path.dirname(spf)
+
+    with open(spf,"r") as spf_file:
+        SPFoutput = [line for line in spf_file.readlines()]
+    
+    SPF_dict={}
+    for line in SPFoutput:
+        SPFarr=[int(i) for i in line.replace(',', ' ').split()[1:] if i != '_gap_' ]
+        SPFarr= sorted(list(set(SPFarr)))
+        SPF_dict[line.split('\t')[0]]=SPFarr
+
+    SPF_dict=dict(sorted(SPF_dict.items()))
+
+    count=0
+    SPF_out_name='SPF_output.txt'
+    if os.path.exists(os.path.join(outdir,SPF_out_name)):
+        count+=1
+        out_file_name='SPF_input'+str(count)+'.txt'
+    out_file_path=os.path.join(outdir,SPF_out_name)
+
+    with open(out_file_path,'w') as file:
+        file.write("Accession Number\tSuperFam ID\n")
+        for protein in SPF_dict:
+            file.write(f"{protein}\t{SPF_dict[protein]}\n")
+
+
+
 if __name__=="__main__":
     if len(sys.argv) in (3,4) and sys.argv[1]=='--all':
         mode = sys.argv[1]
@@ -72,13 +101,13 @@ if __name__=="__main__":
             print("Invalid Input folder path. Exiting Code.")
             exit(1)
         elif len(sys.argv) ==3:
-            single_fasta(mode,input_dir,input_dir)
+            fasta_for_spf(mode,input_dir,input_dir)
         elif len(sys.argv) ==4:
             output_dir=sys.argv[3]
             if not os.path.isdir(output_dir):
                 print("Invalid Output folder path. Exiting Code.")
                 exit(1)
-            single_fasta(mode,input_dir,output_dir)
+            fasta_for_spf(mode,input_dir,output_dir)
 
     elif len(sys.argv) in (4,5) and sys.argv[1]=='--list':
         mode = sys.argv[1]
@@ -101,13 +130,31 @@ if __name__=="__main__":
             print("Invalid Output folder path. Exiting Code.")
             exit(1)
         
-        single_fasta(mode,input_dir,output_dir,file_list)
+        fasta_for_spf(mode,input_dir,output_dir,file_list)
     
+    elif len(sys.argv)in (3,4) and sys.argv[1]=='--spf':
+        input_file=sys.argv[2]
+        if not os.path.isfile(input_file) and input_file.endswith('.txt'):
+            print("Invalid text file path. Exiting Code.")
+            exit(1)
+        elif len(sys.argv) ==3:
+            spf_out(input_file)
+        elif len(sys.argv) ==4:
+            output_dir=sys.argv[3]
+            if not os.path.isdir(output_dir):
+                print("Invalid Output folder path. Exiting Code.")
+                exit(1)
+            spf_out(input_file,output_dir)
+
     else:
         print("ScopGet.py → USAGE:")
+        print("1. To Get Fasta file input for Superfamily Web Tool:")
         print("For all files in a folder")
         print("\tpython ScopGet.py --all <input dir>\t OR")
         print("\tpython ScopGet.py --all <input dir> <output dir>")
         print("For a list of files:")
         print("\tpython ScopGet.py --list <input dir> <text file containing list>\t OR")
         print("\tpython ScopGet.py --list <input dir> <text file containing list> <output dir>")
+        print("\n2. To analyse output from Superfamily Web Tool")
+        print("\tpython ScopGet.py --spf <input file>\t OR")
+        print("\tpython ScopGet.py --spf <input file> <output dir>\t")
