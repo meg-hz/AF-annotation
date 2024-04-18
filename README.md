@@ -1,6 +1,5 @@
 # AF Annotation Code Set
-A collection of scripts used to generate and obtain information from Human protein files retrieved from the Alphafold repository 
-
+A collection of scripts used to generate and obtain information from Human protein files retrieved from the Alphafold repository.
 ## Table of Contents
 -  Basic Protein related
 	1. PDB_modules.py
@@ -13,6 +12,7 @@ A collection of scripts used to generate and obtain information from Human prote
 - FLAPP-related
 	1. FAuto.py
 	2. FOut.py
+	3. SelftoCytos
 
 ---
 ## UPGet.py
@@ -147,6 +147,7 @@ This generates an .txt alignment file in the `FLAPP` directory with information 
 ## FOut.py
 - This code generates threshold files from the given alignment file by only extracting alignments where the Fmin is within a given cutoff value
 - From the threshold output files generated above, it can also provide information on the number of instances of the aligned proteins as well as their pockets
+### Usage
 
 **1. To generate threshold file from the outfile for a given Fmin threshold**
 ```
@@ -175,3 +176,14 @@ This generates a collection of .tsv files for each threshold file in the folder 
 **Points To Note:**
 - This script is written as the next step to `FAuto.py`, hence the file-handling is also considered accordingly- the `alignment file` referred to here is the output file generated in `FAuto.py`
 ---
+## Flapp2Cytos.py
+- This code takes the alignment file as input and generates a network file for Cytoscape.
+- The alignment file can either be used directly, or the threshold files can be given as input instead 
+### Usage
+```
+python FlappToCytos.py <path to alignment file>
+```
+or
+```
+FlappToCytos.py <path to alignment file> <path to output dir>
+```
