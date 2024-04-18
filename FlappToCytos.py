@@ -1,4 +1,4 @@
-# SelftoCytos.py
+# FlappToCytos.py
 # single hashes for info. double hashes for debugging/alternate code
 # to generate a cytoscape input file from a given alignment file
 
@@ -48,7 +48,7 @@ if __name__=="__main__":
 
         cytoscape_input(cutoff_file,op_file_dir)  
     else:
-        print("SelfToCytos.py → USAGE:")
-        print("\tpython SelfToCytos.py <path to alignment file>\t OR")
-        print("\tpython SelfToCytos.py <path to alignment file> <path to output dir>\t OR")
+        print("FlappToCytos.py → USAGE:")
+        print("\tpython FlappToCytos.py <path to alignment file>\t OR")
+        print("\tpython FlappToCytos.py <path to alignment file> <path to output dir>\t OR")
         
