@@ -9,35 +9,38 @@ import os, shutil, sys
 root= os.getcwd() 
 
 # path for executables
-fpocket_path=os.path.join(root,'/fpocket')
-sitehound_path=os.path.join(root,'/EasyMIFs_SiteHound_Linux')
-pocketdepth_path=os.path.join(root,'/PocketDepth')
+fpocket_path=os.path.join(root,'fpocket')
+sitehound_path=os.path.join(root,'EasyMIFs_SiteHound_Linux')
+pocketdepth_path=os.path.join(root,'PocketDepth')
 
 #---------------------------------------------------------------------------------------------------
 # POCKET GENERATION PIPELINES AND FILE HANDLING
 
 def fpocket(file_path, op_folder):
 
+    #print(op_folder)
+
     file_name=os.path.split(file_path)[-1] # just file name
 
-    if os.path.exists(op_folder) and os.listdir(op_folder):
-        print(f"FPOCKET RESULT ALREADY EXISTS FOR {file_name}")
-        return
-    else:
-        if os.path.exists(op_folder):
+    if os.path.isdir(op_folder):
+        if os.listdir(op_folder):
+            print(f"FPOCKET RESULT ALREADY EXISTS FOR {file_name}")
+            return
+        else:
             os.rmdir(op_folder)
+            print(f"UPDATING FPOCKET...")
+            
     
-    print("RUNNING FPOCKET...")
+    print(F"RUNNING FPOCKET FOR {file_name}...")
     shutil.copy(file_path, fpocket_path) # moves to fpocket directory
-
     os.chdir(fpocket_path)
-    os.system("fpocket -f "+ file_path)  # runs fpocket
-    
-    os.rename(fpocket_path+'/'+file_name[:-4]+'_out',op_folder)
-    os.remove(fpocket_path+'/'+file_name)
+    os.system("fpocket -f "+ os.path.join(fpocket_path,os.path.split(file_path)[-1]))  # runs fpocket
+
+    os.rename(os.path.join(fpocket_path,file_name[:-4]+'_out'),op_folder)
+    os.remove(os.path.join(fpocket_path,file_name))
 
     print()
-    print("FPOCKET COMPLETE FOR",file_name)
+    print("FPOCKET COMPLETE")
     print("-------------------------------------------------------------")
     print()
 
@@ -47,19 +50,21 @@ def pocketdepth(file_path, op_folder):
 
     file_name=os.path.split(file_path)[-1] # just file name
 
-    if os.path.exists(op_folder) and os.listdir(op_folder):
-        print(f"POCKETDEPTH RESULT ALREADY EXISTS FOR {file_name}")
-        return
-    else:
-        if os.path.exists(op_folder):
+    if os.path.exists(op_folder):
+        if os.listdir(op_folder):
+            print(f"POCKETDEPTH RESULT ALREADY EXISTS FOR {file_name}")
+            return
+        else:
             os.rmdir(op_folder)
+            print(f"UPDATING POCKETDEPTH...")
 
+    print(F"RUNNING POCKETDEPTH FOR {file_name}...")
     shutil.copy(file_path,pocketdepth_path) # move file to pocketdepth directory
     os.chdir(pocketdepth_path)              # change env to pocketdepth directory
     os.system("python PD.py "+ file_name)  # runs pocketdepth
  
-    os.rename(pocketdepth_path+'/'+file_name[:-4],op_folder)
-    os.remove(pocketdepth_path+'/'+file_name)
+    os.rename(os.path.join(pocketdepth_path,file_name[:-4]),op_folder)
+    os.remove(os.path.join(pocketdepth_path,file_name))
 
     print()
     print("POCKETDEPTH COMPLETE FOR",file_name)
@@ -73,22 +78,22 @@ def sitehound(file_path, op_folder):
     
     file_name=os.path.split(file_path)[-1] # just file name
 
-    if os.path.exists(op_folder) and os.listdir(op_folder):
-        print(f"SITEHOUND RESULT ALREADY EXISTS FOR {file_name}")
-        return
+    if os.path.exists(op_folder):
+        if os.listdir(op_folder):
+            print(f"SITEHOUND RESULT ALREADY EXISTS FOR {file_name}")
+            return
     
-    else:
-        if os.path.exists(op_folder):
+        else:
             os.rmdir(op_folder)
             print(f"UPDATING SITEHOUND...")
 
-
+    print(F"RUNNING SITEHOUND FOR {file_name}...")
     shutil.copy(file_path,sitehound_path)           # move file to sitehound directory
     os.chdir(sitehound_path)                        # change env to sitehound directory
     os.system("python2.7 sitehound.py "+ file_name) # runs sitehound
 
-    os.rename(sitehound_path+'/'+file_name[:-4],op_folder)
-    os.remove(sitehound_path+'/'+file_name)
+    os.rename(os.path.join(sitehound_path,file_name[:-4]),op_folder)
+    os.remove(os.path.join(sitehound_path,file_name))
 
     print()
     print("SITEHOUND COMPLETE FOR", file_name)
@@ -107,38 +112,38 @@ def main(pdb_paths, accession_list=None):
         accession_list=[]
         for file in os.listdir(pdb_paths):
             file_path=os.path.join(pdb_paths,file)
-            if os.path.isfile(file_path) and file.endswith('pdb'):
-                if file not in file_list:
+            if os.path.isfile(file_path) and file.endswith('.pdb'):
+                if file not in accession_list:
                     accession_list.append(file.strip())
         
-    output_path= os.path.join(root,'/protein_results') 
+    output_path= os.path.join(root,'protein_result') 
     if not os.path.exists(output_path):
         os.mkdir(output_path)
 
-        for accession in accession_list:
-            ##print(accession)
-            for file in os.listdir(pdb_paths):
-            
-                if file.endswith('.pdb') and accession in file:
-                    file_address=os.path.join(pdb_paths,file)
-                    ##print(file_address)
-                    ##print()
-                    protein_folder=os.path.join(output_path,file[:-4])
+    for accession in accession_list:
+        ##print(accession)
+        for file in os.listdir(pdb_paths):      
 
-                    if not os.path.exists(protein_folder):
-                        os.mkdir(protein_folder)
+            if file.endswith('.pdb') and accession in file:
+                file_address=os.path.join(pdb_paths,file)
+                ##print(file_address)
+                ##print()
+                protein_folder=os.path.join(output_path,file[:-4])
 
-                    # fpocket
-                    new_folder= protein_folder + '/' + file[:-4]+'_fpk'
-                    fpocket(file_address, new_folder) 
+                if not os.path.exists(protein_folder):
+                    os.mkdir(protein_folder)
 
-                    # sitehound
-                    new_folder= protein_folder + '/' + file[:-4]+'_sth'
-                    sitehound(file_address, new_folder) 
+                # fpocket
+                new_folder= os.path.join(protein_folder,file[:-4]+'_fpk')
+                fpocket(file_address, new_folder)                 
 
-                    # pocketdepth
-                    new_folder= protein_folder + '/' + file[:-4]+'_pkd'
-                    pocketdepth(file_address, new_folder)  
+                # sitehound
+                new_folder= os.path.join(protein_folder,file[:-4]+'_sth')
+                sitehound(file_address, new_folder) 
+
+                # pocketdepth
+                new_folder= os.path.join(protein_folder,file[:-4]+'_pkd')
+                pocketdepth(file_address, new_folder)  
             
 
 #---------------------------------------------------------------------------------------------------
@@ -155,11 +160,12 @@ if __name__ == "__main__":
             exit(1)
     
         accession_list=[]
-        if os.path.isfile(file_list) and file_list[-4:] in ['.txt', '.tsv', '.csv']:
+        if os.path.isfile(file_list) and file_list.endswith(('.txt', '.tsv', '.csv')):
             with open(file_list, 'r') as ref:  # this works if file_list is a file with a list of filenames
                 for line in ref:
                     if line.split()[0] not in accession_list:
                         accession_list.append(line.split('\n')[0]) # array of file names
+                        ##print(accession_list)
         else:
             accession_list.append(file_list.strip())
         
