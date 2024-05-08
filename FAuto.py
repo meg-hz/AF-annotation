@@ -9,25 +9,11 @@ import os, shutil, sys
 root= os.getcwd()
 FLAPP_path=os.path.join(root,'FLAPP') 
 
-# obtaining list of addresses of pocket files 
-def input_add(ip_path):
+# obtaining list of addresses of files 
+def address_list(folderpath):
     arr_of_add=[]
-    for accession in os.listdir(ip_path):
-        ##print(accession)
-        site1_path= os.path.join(ip_path, accession, 'all_match')
-        for file in os.listdir(site1_path):
-            file_path=os.path.join(site1_path,file)
-            ##print(file_path)
-            if os.path.isfile(file_path) and file_path.endswith('.pdb'):
-                arr_of_add.append(file_path)
-
-    return arr_of_add
-
-# obtaining list of addresses of CRD files 
-def template_add(site2_path):
-    arr_of_add=[]
-    for file in os.listdir(site2_path):
-        file_path=os.path.join(site2_path,file)
+    for file in os.listdir(folderpath):
+        file_path=os.path.join(folderpath,file)
         ##print(file_path)
         if os.path.isfile(file_path) and file_path.endswith('.pdb'):
             arr_of_add.append(file_path)
@@ -35,82 +21,80 @@ def template_add(site2_path):
     return arr_of_add
 
 # writing pairwise matrix of files
-def write_pairs(list1, list2):
+def write_pairs(mode, list1, list2):
 
-    filepath = os.path.join(FLAPP_path,'Pairs.txt')
+    # deciding file name based on FLAPP mode
+    if mode== '--f2self':
+        basename='SELF_Pairs'
+    elif mode=='--f2temp':
+        basename='TEMP_Pairs'
+
+    filepath = os.path.join(FLAPP_path,f'{basename}.txt')
     count=0
     while os.path.exists(filepath):
         count+=1
-        filepath = os.path.join(FLAPP_path,'Pairs'+str(count)+'.txt')
-    
+        filepath = os.path.join(FLAPP_path,f'{basename}{str(count)}.txt')
+
+    # write pair file
     with open(filepath,'w') as pairwise:
-        ##count=0
         for file1 in list1:
-            ##count+=1
-            ##count1=0
             file1_name=os.path.split(file1)[-1]
+
             for file2 in list2:
                 file2_name=os.path.split(file2)[-1]
+
                 pairwise.write(file1_name + '\t' + file2_name +'\n')   
-                ##count1+=1
-            ##print(f" List2: {count1}")
-        ##print(f" List1: {count}")
 
     print(f"{os.path.split(filepath)[-1]} generated")
     return filepath
 
-# Making a New Folder with all binding sites
-def FLAPP_BS():
+def main(mode, pocket_path, template_path, cores):
+
+    # foldernames based on comparison mode
+    if mode== '--f2self':
+        basename='SELF_'
+    elif mode=='--f2temp':
+        basename='TEMP_'
     count=0
-    BS_dir=os.path.join(FLAPP_path,'BindingSites')
+
+    # writing the pairfile
+    pair_file=os.path.split(write_pairs(mode, af_temp,template_temp))[-1] 
+
+    # for BindingSite
+    BS_dir=os.path.join(FLAPP_path,f'{basename}BindingSites')
     while os.path.exists(BS_dir):
         count+=1
-        BS_dir=os.path.join(FLAPP_path,'BindingSites'+str(count))
+        BS_dir=os.path.join(FLAPP_path,f'{basename}BindingSites{str(count)}')
     os.mkdir(BS_dir)
-    return BS_dir 
 
-def main(mode,pocket_path, template_path, cores):
+    BS_dir_asvar=os.path.split(BS_dir)[-1]
+    print(f"{BS_dir_asvar} Folder Generated")
 
-    # get the file addresses
-    if mode == '--f2temp':
-        af_temp=input_add(pocket_path)
-        template_temp=template_add(template_path)
-    elif mode == '--f2self':
-        af_temp=input_add(pocket_path)
-        template_temp=input_add(template_path)
+    # for SiteVector
+    SV_dir=os.path.join(FLAPP_path,f'{basename}SiteVector')
+    while os.path.exists(SV_dir):
+        count+=1
+        SV_dir=os.path.join(FLAPP_path,f'{basename}SiteVector{str(count)}')
+    SV_dir_asvar=os.path.split(SV_dir)[-1]
+
+    # get address of all necessary files
+    af_temp=address_list(pocket_path)
+    template_temp=address_list(template_path)
     
-    elif mode == '--f2misc':
-        af_temp=template_add(template_path)
-        template_temp=template_add(template_path)
-
-    pair_file=os.path.split(write_pairs(af_temp,template_temp))[-1] #pairs.txt
-
-    bindingsite_dir=FLAPP_BS()
-    print(f"{bindingsite_dir.split('/')[-1]} Folder Generated")
-
+    # moving necessary files
     for i in af_temp:
-        shutil.copy(i,bindingsite_dir)
+        shutil.copy(i,BS_dir)
     print('Pocket files moved')
 
     for i in template_temp:
-        shutil.copy(i,bindingsite_dir)
+        shutil.copy(i,BS_dir)
     print('Template files moved')
-
+     
     count=0
-    SV_dir = os.path.join(FLAPP_path,'SiteVector')
-    while os.path.exists(SV_dir):
-        count+=1
-        SV_dir=os.path.join(FLAPP_path,'SiteVector'+str(count))
-    os.mkdir(SV_dir)
-
-    BS_dir_asvar=os.path.split(bindingsite_dir)[-1]
-    SV_dir_asvar=os.path.split(SV_dir)[-1]
-
-    count=0
-    outfile_path = os.path.join(FLAPP_path,'Outfile.txt')
+    outfile_path = os.path.join(FLAPP_path,f'{basename}Outfile.txt')
     while os.path.exists(outfile_path):
         count+=1
-        outfile_path=os.path.join(FLAPP_path,'Outfile'+str(count)+'.txt')
+        outfile_path=os.path.join(FLAPP_path,f'{basename}Outfile'+str(count)+'.txt')
     outfile_path=os.path.split(outfile_path)[-1]
     
     os.chdir(FLAPP_path)
@@ -124,7 +108,7 @@ def main(mode,pocket_path, template_path, cores):
     return
 
 if __name__ == "__main__":
-    if len(sys.argv) ==5 and sys.argv[1] in ['--f2temp','--f2misc']:
+    if len(sys.argv) ==5 and sys.argv[1] =='--f2temp':
         mode=sys.argv[1]
         af_dir = sys.argv[2] # path to pocket PDB files
         temp_dir = sys.argv[3] # path to template directory
@@ -137,7 +121,7 @@ if __name__ == "__main__":
         print("Running FLAPP...")
         main(mode,af_dir,temp_dir,core_no)
     
-    elif len(sys.argv)==4 and sys.argv[1] in ['--f2self','--f2misc']:
+    elif len(sys.argv)==4 and sys.argv[1] == '--f2self':
         mode=sys.argv[1]
         af_dir = sys.argv[2]
         core_no= sys.argv[3]
