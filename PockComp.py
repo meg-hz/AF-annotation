@@ -67,7 +67,8 @@ def pocket_matches(pock_dir):
                                 # all common residues between all   
                 
                         if len(count2)>=4:
-                            match_pairs.append((str(SH_filepath+'/'+SH_key),str(FP_filepath+'/'+FP_key),str(PD_filepath+'/'+PD_key),count2))
+                            match_pairs.append((str(SH_filepath+'/'+SH_key),str(FP_filepath+'/'+FP_key),
+                                                str(PD_filepath+'/'+PD_key),count2))
                             ##print((str(SH_filepath+'/'+SH_key),str(FP_filepath+'/'+FP_key)))
 
             all_matches[protein_folder]=match_pairs 
@@ -105,50 +106,8 @@ def matches_tsv(pock_dir):
     print("------------------------------------------------------")
     print()
 
-# extracts ATOM lines from a .pdb file for a given set of residues
-def extract_atom_lines(pdb_file, residues):
-    atom_lines = []
-    with open(pdb_file, 'r') as f:
-        for line in f:
-            if line.startswith('ATOM'):
-                residue_name = line[17:27].strip()
-                if residue_name in residues:
-                    atom_lines.append(line)
-    return atom_lines
 
-# generates consensus pocket files for each set of matching pdb files
-def matches_pdb(input_dir,output_dir):
-
-    # dictionary of matched residues
-    pocket_dir=pocket_matches(output_dir)
-
-    for protein_file in pocket_dir:
-        ##print(f'{protein_file}:{items}')
-
-        new=os.path.join(output_dir,protein_file,'all_match')
-        if not os.path.exists(new):
-            os.mkdir(new)
-
-        i=0
-        pdb_file = os.path.join(input_dir, protein_file+'.pdb')
-            
-        for matched in pocket_dir[protein_file]:
-            i+=1
-            residues = matched[-1]  # list of matching residues
-
-            # Extract atom lines for each residue
-            atom_lines = extract_atom_lines(pdb_file, residues)
-
-            # Write the extracted atom lines to a new pdb file
-            pocket_name=protein_file+'-p'+str(i)+'.pdb'
-            output_file = os.path.join(new,pocket_name)
-            with open(output_file, 'w') as outfile:
-                outfile.writelines(atom_lines)
-            ##print(f'{pocket_name} generated')
-        print(f'{i} files generated for {protein_file}')
-        
-
-# get a set of confidence scores for Alphafold 
+# get a set of confidence scores for Alphafold Files
 def check_numeric_values(file_path):
     numeric_values = []
     with open(file_path, 'r') as pdb_file:
@@ -168,46 +127,145 @@ def check_numeric_values(file_path):
     # returns number of residues with
     return percentage_below_threshold > 30
 
-def move_lowconf_pdb(folder_path):
-    for dirs in os.listdir(folder_path):
-        print(f'FOR {dirs}')
-        pocket_dirs= os.path.join(folder_path, dirs,'all_match')
+# generates a folder with final set of filtered pocketdepth files 
+def PKD_matches(pock_dir, outfolder=None):
 
-        for file in os.listdir(pocket_dirs):
-            ##print(file)
-            if file.endswith('.pdb'):
-                pdb_path = os.path.join(pocket_dirs, file)
-                if check_numeric_values(pdb_path):
+    # a folder where the output files will go
+    if outfolder==None:
+        home=os.getcwd()
+        outfolder=os.path.join(home,'PKDmatch')
 
-                    low_conf_folder=os.path.join(pocket_dirs,'Low_conf')
+    count=0
+    while os.path.exists(outfolder):
+        count+=1
+        outfolder=os.path.join(home,f'PKDmatch{count}')
+    
+    print("New Folder Created. Moving PKD files...")
+    
+    # copying pocket files into the output folder 
+    reference = pocket_matches(pock_dir)
+    PKD_matches = [reference[i][2] for i in reference]
 
-                    if not os.path.exists(low_conf_folder):
-                        os.mkdir(low_conf_folder)
+    count=0
+    for address in PKD_matches:
+        if os.path.isfile(address) and address.endswith('.pdb'):
+            shutil.copy(address,outfolder)
+            count+=1
 
-                    shutil.move(pdb_path,low_conf_folder)
-                    print(f"Moved: {file}")
-        print()
-    print("All Low Confidence files have been moved")
+    print(f"Copied {count} Matching PocketDepth files. Filtering for Low Confidence...")
+
+    # removing low confidence files
+    count=0
+    for file in os.listdir(outfolder):
+        file_path = os.path.join(file)
+        if os.path.isfile(file_path) and file_path.endswith('.pdb'):
+            if check_numeric_values(file_path):
+                os.remove(file_path)
+                count+=1
+    print(f'Removed {count} files with low residue confidence')    
+
+    return PKD_matches
+
+# extracts ATOM lines from a .pdb file for a given set of residues
+def extract_atom_lines(pdb_file, residues):
+    atom_lines = []
+    with open(pdb_file, 'r') as f:
+        for line in f:
+            if line.startswith('ATOM'):
+                residue_name = line[17:27].strip()
+                if residue_name in residues:
+                    atom_lines.append(line)
+    return atom_lines
+
+# generates consensus pocket files for each set of matching pdb files
+def matches_pdb(ref_dir,pock_dir,outfolder=None):
+
+    # where the output files will go
+    if outfolder==None:
+        home= os.getcwd()
+        outfolder=os.path.join(home,'Pock_OnlyMatches')
+    
+    count=0
+    while os.path.exists(outfolder):
+        count+=1
+        outfolder=os.path.join(home,f'Pock_OnlyMatches{count}')
+
+    # dictionary of matched residues
+    pocket_dir=pocket_matches(pock_dir)
+
+    count_allPDB=0
+    for protein_file in pocket_dir:
+        count_perPDB=0
+        ##print(f'{protein_file}:{items}')
+
+        # accessing the reference PDB file
+        pdb_file = os.path.join(ref_dir, protein_file+'.pdb')
+
+        # running through the matched residue dictionary
+        for matched in pocket_dir[protein_file]:
+            residues = matched[-1]  # list of matching residues
+
+            # Extract atom lines for each residue
+            atom_lines = extract_atom_lines(pdb_file, residues)
+
+            # Write the extracted atom lines to a new pdb file
+            count_perPDB+=1            
+            pocket_name=protein_file+'-p'+str(count_perPDB)+'.pdb'
+            output_file = os.path.join(outfolder,pocket_name)
+
+            with open(output_file, 'w') as outfile:
+                outfile.writelines(atom_lines)
+            
+        print(f'{count_perPDB} files generated for {protein_file}')
+        count_allPDB+=count_perPDB
+
+    print(f"{count_allPDB} protein files generated.Filtering for Low Confidence...")
+
+    # folder where the low conf files will go
+    low_conf_folder=os.path.join(outfolder,'Low_conf')
+    if not os.path.exists(low_conf_folder):
+        os.mkdir(low_conf_folder)
+
+    count=0
+    for file in os.listdir(outfolder):
+        ##print(file)
+        file_path=os.path.join(outfolder, file)
+
+        if os.path.isfile(file_path) and file.endswith('.pdb'):
+            if check_numeric_values(file_path):
+                shutil.move(file_path,low_conf_folder)
+
+                print(f"Moved: {file}")
+
+    print()
+    print(f"{count} Low Confidence files have been moved")
 
 #---------------------------------------------------------------------------------------------------
 # MAIN PROGRAM STARTS HERE
 
 if __name__ == "__main__":
-    if len(sys.argv) ==3 and sys.argv[1] == '--tsv':
-            pockets = sys.argv[2]
-            matches_tsv(pockets)
+    if len(sys.argv) ==3:
+        pocket_dir=sys.argv[2]
+        if not os.path.isdir(pocket_dir):
+            print('Invalid Dir Path. Exiting...')
+            exit(1)
 
-    elif len(sys.argv) ==3 and sys.argv[1] == '--lcf':
-            pocket_dir=sys.argv[2]
-            move_lowconf_pdb(pocket_dir)
+        if sys.argv[1] == '--tsv':
+            matches_tsv(pocket_dir)
+
+        if sys.argv[1] == '--pkd':
+            PKD_matches(pocket_dir)
 
     elif len(sys.argv) == 4 and sys.argv[1] == '--pdb':
         indir = sys.argv[2] # directory with the input PDB
         outdir = sys.argv[3] # directory where the pocket files are
         matches_pdb(indir, outdir)
+    
       
     else:
-        print("PockComp.py → USAGE:")
+        print ("PockComp.py → USAGE:")
         print ("For TSV of matched pockets: \n\tpython PockComp.py --tsv <path to dir with pocket files>")
-        print ("For PDB of consensus pockets: \n\tpython PockComp.py --pdb <path to protein files dir> <path to pocket files dir>")
+        print ("For PDB of consensus pockets: \n\tpython PockComp.py --pdb <path to reference protein files dir> <path to pocket files dir>")
+        print ("For PDB of matching PocketDepth pockets: \n\tpython PockComp.py --pkd <path to dir with pocket files>")
         print ("For moving pockets with low conf:\n\tpython PockComp.py --lcf <path to dir with pocket files>")
+            
