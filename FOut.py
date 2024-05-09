@@ -23,6 +23,7 @@ def Fmin_cutoff(outfile,threshold):
                     continue 
 
                 # Extract the Fmin (6th component) in terms of %
+                ##print(line.split())
                 value = int(float(line.split()[5])*100)
                 if value >= threshold: # Check if the value exceeds the threshold
                     write_file.write(line)
@@ -42,7 +43,7 @@ def Fmin_all(outfile):
         shutil.move(Fmin_cutoff(outfile,threshold),outdir)
         count+=1
     
-    print(f"All files moved to {os.path.split(outdir)}")
+    print(f"All files moved to {os.path.split(outdir)[1]}")
     return
              
 def cutoff_analysis_set(outfolder):
@@ -58,22 +59,22 @@ def cutoff_analysis(filepath):
     print("Reading File...")
     with open(filepath,'r') as read_file:
         filelines= read_file.readlines()
-            
-    pocket_file = filelines[1].split()[0] #name of the pocket file
-    protein=pocket_file.split('-')[1] #accession number of protein
-    value=0 #number of occurances
+
+    pocketlist=[i.split()[0] for i in filelines[1:]]
+    pocketdict={}
+
+    for i in pocketlist:
+        if i not in pocketdict:
+            pocketdict[i]=1
+        else:
+            pocketdict[i]+=1 
 
     tsvname=filepath[:-4]+'_analysis.tsv'
     with open(tsvname,'w')as write_tsv:
         write_tsv.write("Accession Number\tPocket File\tNumber of Occurences\n")
-        for line in filelines[1:]:
-            if line.split()[0]== pocket_file:
-                value+=1
-            else:
-                write_tsv.write(f'{protein}\t{pocket_file}\t{value}\n')
-                pocket_file=line.split()[0]
-                protein=pocket_file.split('-')[1]
-                value=1
+        for pocket in pocketdict:
+            protein=pocket.split('-')[1]
+            write_tsv.write(f'{protein}\t{pocket}\t{pocketdict[pocket]}\n')
         print(f'{os.path.split(tsvname)[-1]} generated')
 
     
@@ -97,7 +98,7 @@ if __name__ == "__main__":
         
         Fmin_cutoff(outfile_path,int(cutoff))  
     
-    elif sys.argv[1]=='--fset':
+    elif len(sys.argv) in (3,4) and sys.argv[1]=='--fset':
         if len(sys.argv)==3: #in case of single file
             single_file=sys.argv[2]
 
