@@ -1,6 +1,6 @@
 # PDB_modules.py
-# single hashes for info. double hashes for debugging/alternate code
 # main function produces output csv with information about all files in alphafold folder
+# single hashes for info. double hashes for debugging/alternate code
 
 # dependencies
 import re, csv, os, sys, numpy as np, matplotlib.pyplot as plt 
@@ -28,43 +28,55 @@ def get_lines(path, index):
             if index in line.split()[0]:
                 extracted.append(line)
 
-    return extracted
+    if extracted:
+        return extracted
+    else:
+        return None
 
 # get file title
 def get_title(path):
-    title=' '.join([line[10:79].strip() for line in get_lines(path, "TITLE")])
-    return title.strip()
+    if get_lines(path, "TITLE"):
+        title=' '.join([line[10:79].strip() for line in get_lines(path, "TITLE")])
+        return title.strip()
+    else:
+        return '-'
 
 # get name of molecule and chain
 def get_compound(path):
-    compound={}
-    str=''.join([line[11:79].strip() for line in get_lines(path,'COMPND')])
-    arr=str.split(";")
+    if get_lines(path,'COMPND'):
+        compound={}
+        str=''.join([line[11:79].strip() for line in get_lines(path,'COMPND')])
+        arr=str.split(";")
 
-    for i in arr:
-        if "MOLECULE:" in i: 
-            key= i.split(":")[-1].strip()
-        elif "CHAIN:" in i:
-            chain= i.split(":")[-1].strip().split(',')
-            compound[key] = [s.strip().replace(';','') for s in chain]
-        
-    if len(compound)==1:
-        af_cpd=list(compound.keys())[0]
-        af_ch=compound[af_cpd][0]
-        return [af_cpd,af_ch]
-    
+        for i in arr:
+            if "MOLECULE:" in i: 
+                key= i.split(":")[-1].strip()
+            elif "CHAIN:" in i:
+                chain= i.split(":")[-1].strip().split(',')
+                compound[key] = [s.strip().replace(';','') for s in chain]
+
+        if len(compound)==1:
+            af_cpd=list(compound.keys())[0]
+            af_ch=compound[af_cpd][0]
+            return [af_cpd,af_ch]
+
+        else:
+            return compound
     else:
-        return compound
+        return '-'
 
 # get accession IDs of molecules in file
 def get_accession(path):
-    PDB_accession=get_lines(path,'DBREF')[0][7:11]
-    UP_accession= [line[33:].split()[0] for line in get_lines(path,'DBREF')]
+    if get_lines(path,'DBREF'):
+        PDB_accession=get_lines(path,'DBREF')[0][7:11]
+        UP_accession= [line[33:].split()[0] for line in get_lines(path,'DBREF')]
 
-    if (PDB_accession)=='XXXX':
-        return UP_accession[0]
-    else:
-        return PDB_accession
+        if (PDB_accession)=='XXXX':
+            return UP_accession[0]
+        else:
+            return PDB_accession
+    else: 
+        return os.path.split(path)[-1]
 
 
 # get fragment number from filename
@@ -100,7 +112,7 @@ def get_fasta(path):
     seq={} ; starting = None
     r_val=''
 
-    for element in atom_data(path):
+    for element in atom_data:
         residue=ref[element[0]]
         chain = element[1]
         position = element[2]
@@ -482,13 +494,13 @@ if __name__=="__main__":
     
     else:
         print("PDB_modules.py → USAGE:")
-        print("To generate Fasta from PDB files")
+        print("To generate Fasta from PDB files:")
         print("\tpython PDB_modules.py --fasta -file <path to pdb file> <path to output dir/ optional>")
         print("\tpython PDB_modules.py --fasta -all <path to dir with pdb files> <path to output dir/ optional>")
         print("\tpython PDB_modules.py --fasta -frag <path to dir with fragment files> <path to output dir/ optional>")
-        print("To obtain information of all files in the folder")
+        print("To obtain information of all files in the folder:")
         print("\tpython PDB_modules.py --metadata <path to dir with pdb files> <path to output dir/ optional>")
-        print("To generate Residue v/s Confidence graph for a .pdb file")
+        print("To generate Residue v/s Confidence graph for a .pdb file:")
         print("\tpython PDB_modules.py --conf <path to pdb file> <path to output dir/ optional>")
-        print("To generate an output PDB with only binding site region for a ligand")
+        print("To generate an output PDB with only binding site region for a ligand:")
         print("\tpython PDB_modules.py --bsite <HETATM code> <path to pdb file> <path to output dir/ optional>")
