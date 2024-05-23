@@ -42,7 +42,7 @@ def findLigands(infile,outpath=None):
         outfile=outfile[:-4]+str(count)+'.txt'
             
     with open(outfile,'w') as f:
-        f.write('Protein\tNo. of Residues\tNo of Pockets\tLigand\t No. of BS Residues\tRatio of residues of Prot Pocket/BS Pocket\n')
+        f.write('Protein\tPocketFile\tNo. of Residues\tNo of Pockets\tLigand\t No. of BS Residues\tRatio of residues of Prot Pocket/BS Pocket\n')
         for i in pocketdict:
             ligand_dict=pocketdict[i]
             protein=i.split('-')[1]
