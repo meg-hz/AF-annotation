@@ -76,7 +76,7 @@ def get_accession(path):
         else:
             return PDB_accession
     else: 
-        return os.path.split(path)[-1]
+        return os.path.split(path)[-1].split('.')[0]
 
 
 # get fragment number from filename
@@ -140,8 +140,7 @@ def get_fasta(path):
 def get_solo_fasta(pdb_path,out_path=None):
 
     if out_path==None:
-        out_path = os.path.dirname(pdb_path)
-
+        out_path = os.getcwd()
     filename=os.path.split(pdb_path)[-1][:-4]+".fa"
     output = os.path.join(out_path, filename)
 
@@ -153,7 +152,7 @@ def get_solo_fasta(pdb_path,out_path=None):
 def get_all_fasta(directory_path,out_path=None):
     # note that for get_solo_fasta input function before this- i/p is a file path but here it's the dir path 
     if out_path==None:
-        out_path = os.path.dirname(directory_path)
+        out_path = os.getcwd()
     
     for file in os.listdir(directory_path):
         file_path=os.path.join(directory_path,file)
@@ -173,7 +172,7 @@ def get_all_fasta(directory_path,out_path=None):
 def get_combined_fasta(directory_path,out_path=None):
 
     if out_path==None:
-        out_path = os.path.dirname(directory_path)
+        out_path =os.getcwd()
 
     # STEP 1: actually get the duplicates 
     def get_duplicates(directory_path):
@@ -339,7 +338,7 @@ def get_metadata(directory_path,op_path=None):
 def get_conf_graph(pdb_path,out_path=None):
 
     if out_path==None:
-        out_path = os.path.dirname(pdb_path)
+        out_path = os.getcwd()
     
     arr=get_confscore(pdb_path)
     i= len(arr) 
@@ -378,7 +377,7 @@ def get_conf_graph(pdb_path,out_path=None):
 # gets all protein residues within 4.5A of given ligand
 def get_dist(ligand, path, out_path=None):
     if out_path==None:
-        out_path = os.path.dirname(path)
+        out_path = os.getcwd()
 
     ligand_data=[]
     cls_res=[]
