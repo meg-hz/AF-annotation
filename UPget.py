@@ -1,10 +1,8 @@
 # UPGet.py
+# to run every refseq id through uniprot to obtain protein information
 # single hashes for info. double hashes for debugging/alternate code
-# run every refseq id through uniprot to obtain protein information
 
 import requests, json, sys, os
-
-root=os.getcwd()
 
 def uniprot(ncbi):
 
@@ -17,18 +15,19 @@ def uniprot(ncbi):
 
     data = json.loads(response.text)['results'] # convert object to dictionary
 
+    info=[]
     for dict in data:
-        if dict['entryType']=='UniProtKB reviewed (Swiss-Prot)': # only want the swissprot protein
+        if dict['entryType']=='UniProtKB reviewed (Swiss-Prot)': # only want the swissprot proteins
 
             acc=dict['primaryAccession']
             name= dict['proteinDescription']['recommendedName']['fullName']['value']
+            organism=dict['organism']['scientificName']
         
             for i in dict['genes']:
-                geneID+=(i['geneName']['value']+' ')
+                geneID=(i['geneName']['value']+' ')
 
-            break
-    
-    return f'{acc}\t{name}\t{geneID}'
+        info.append(f'{acc}\t{name}\t{organism}\t{geneID}')
+    return info
 
 def write_uniprot(refseq_list,out_path):
 
@@ -44,49 +43,50 @@ def write_uniprot(refseq_list,out_path):
     with open(file_path,'w') as out_file:
         out_file.writelines(f"Query\tAccession Number\tProtein Name\tGene ID\n")
         for query in refseq_list:
-            out_file.writelines(f"{query}\t{uniprot(query)}\n")
+            for result in uniprot(query):
+                out_file.writelines(f"{query}\t{result}\n")
+    
+    print(f"{filename} generated.")
     
     return
 
 
 if __name__=="__main__":
-    if len(sys.argv)in (2,3):
-        list_path=sys.argv[1]
-        
-        if len(sys.argv)==3:
-            out_path=sys.argv[2]
-            print(out_path)
+    if len(sys.argv)in (3,4) and sys.argv[1] in ('--single', '--list'):
+        if sys.argv[1]=='--single':
+            if os.path.isfile(sys.argv[2]):
+                print("Filepath has been entered in place of query. Retry using '--list' command")
+                exit()
+            querylist = [sys.argv[2]]
+
+        elif sys.argv[1]== '--list':
+            list_path=sys.argv[2]
+            #print(out_path)
+            if not os.path.isfile(list_path):
+                print("Invalid output path. Exiting Code.")
+                exit()
+            
+            with open(list_path,'r') as in_file:
+                reference=in_file.readlines()
+            querylist=[line.split()[0] for line in reference]
+
+        if len(sys.argv)==4:
+            out_path = sys.argv[3]
             if not os.path.isdir(out_path):
                 print("Invalid output path. Exiting Code.")
-        else:
-            out_path=root
-
-        if os.path.exists(list_path):
-
-            if not (os.path.isfile(list_path) and list_path.endswith('.txt')):
-                print("Error in inputted file path. Exiting code.")
-                exit(1)
+                exit()
             else:
-                querylist=[]
-                with open(list_path,'r') as in_file:
-                    reference=in_file.readlines()
-
-                    for line in reference:
-                        if line.split()[0] not in querylist:
-                            querylist.append(line.split()[0])
-
-                    write_uniprot(querylist,out_path)
+                write_uniprot(querylist,out_path)
 
         else:
-            write_uniprot([list_path],out_path)
-
-        
+            write_uniprot(querylist,os.getcwd())
+   
 
     else:
         print("UPGet.py → USAGE:")
         print("For Single Query:")
-        print("\tpython UPGet.py <refseqID>")
-        print("\tpython UPGet.py <refseqID> <output dir>")
+        print("\tpython UPGet.py --single <refseqID>")
+        print("\tpython UPGet.py --single <refseqID> <output dir>")
         print("For a Text File with a List of Queries:")
-        print("\tpython UPGet.py <path to .txt file with list of refseq IDs>")
-        print("\tpython UPGet.py <path to .txt file with list of refseq IDs> <output dir>")
+        print("\tpython UPGet.py --list <path to .txt file with list of refseq IDs>")
+        print("\tpython UPGet.py --list <path to .txt file with list of refseq IDs> <output dir>")
