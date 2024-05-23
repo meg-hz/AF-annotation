@@ -30,10 +30,11 @@ def findLigands(infile,outpath=None):
         
         pocketdict[our_pocket][temp_pocket]=pock_ratio
 
+    filename=os.path.split(infile)[-1][:-4]+'_Ligands.txt'
     if outpath==None:
-        outfile=os.path.join(os.getcwd(),'PockMeta_Out.txt')
+        outfile=os.path.join(os.getcwd(),filename)
     else:
-        outfile=os.path.join(outpath,'PockMeta_Out.txt')
+        outfile=os.path.join(outpath,filename)
     
     count=0
     while os.path.isfile(outfile):
