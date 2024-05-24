@@ -196,7 +196,7 @@ if __name__ == "__main__":
         else:
             file_list=sys.argv[4]
 
-            if not os.path.isfile(file_list) and file_list.endswith('.txt'):
+            if not (os.path.isfile(file_list) and file_list.endswith('.txt')):
                 print("Invalid Reference File Path. Exiting Code...")
                 exit(1)
 
