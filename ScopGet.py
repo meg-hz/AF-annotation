@@ -1,10 +1,11 @@
 # ScopGet.py
 # To generate input file SUPFAM web tool and to analyse output
+# single hashes for info. double hashes for debugging/alternate code
 
 import os, sys, PDB_modules as PDBm
 
 # generate input SPF file
-def fasta_for_spf(mode,in_dir,out_dir,ref_file=None):
+def fasta_for_spf(mode,in_dir,out_dir=os.getcwd(),ref_file=None):
   
     # getting list of all PDB files in the folder
     print("Reading Directory...")
@@ -66,53 +67,136 @@ def fasta_for_spf(mode,in_dir,out_dir,ref_file=None):
     
     print("Fasta Files written")
 
+def ScopParse(inputSCOP,spfREF,outpath=None):    
+    with open(inputSCOP,'r') as scopIN:
+        ref1= scopIN.readlines()
+
+    with open(spfREF, 'r') as spfIN:
+        ref2= spfIN.readlines()
+
+    dict={} # to store all protein names with assignment and corresponding residues
+    SPFdict={} # to store all family names for corresponding SUPFAM ID numbers
+
+    for line in ref1:
+        protein = line.split()[0]
+        if protein not in dict:
+            dict[protein]={}
+
+        scop_ref = int(line.split()[-1])
+
+        if ',' in line.split()[2]:
+            res_range = line.split()[2].split(',')
+        else:    
+            res_range = [line.split()[2]]
+
+        dict[protein][scop_ref]=res_range
+
+        for line in ref2[5:]:    
+            if scop_ref == int(line.split('\t')[8]):
+                if scop_ref not in SPFdict:
+                    SPFdict[scop_ref]= line.split('\t')[9]
+        
+    if outpath==None:
+        outpath=os.getcwd()
+
+    outfile=os.path.join(outpath,'Supfam_Assignment.txt')
+    count=0
+    while os.path.isfile(outfile):
+        count+=1
+        outfile=f'{outfile[:-4]}({count}).txt'
+
+    ##print(SPFdict)
+    with open(outfile,'w') as out_f:
+        out_f.write("Protein Accession\tStart Res\tEnd Res\t")
+        out_f.write("Superfam ID\t Protein Family\n")
+        for protein in dict:
+            for one_scop in dict[protein]:
+                for res_range in dict[protein][one_scop]:
+                    if one_scop in SPFdict:
+                        out_f.write(f"{protein}\t{res_range.split('-')[0]}\t{res_range.split('-')[1]}\t")
+                        out_f.write(f"{SPFdict[one_scop]}\t{one_scop}\n")
+                    else:
+                        out_f.write(f"{protein}\t{res_range.split('-')[0]}\t{res_range.split('-')[1]}\t--\t{one_scop}\n")
+         
 
 if __name__=="__main__":
-    if len(sys.argv) in (3,4) and sys.argv[1]=='--all':
-        mode = sys.argv[1]
-        input_dir=sys.argv[2]
-        if not os.path.isdir(input_dir):
-            print("Invalid Input folder path. Exiting Code.")
-            exit(1)
-        elif len(sys.argv) ==3:
-            fasta_for_spf(mode,input_dir,input_dir)
-        elif len(sys.argv) ==4:
-            output_dir=sys.argv[3]
-            if not os.path.isdir(output_dir):
-                print("Invalid Output folder path. Exiting Code.")
+    # for input for SUPFAM web tool
+    if (len(sys.argv) in (4,5,6) and sys.argv[1]=='--input'):
+        mode=sys.argv[2]
+        input_dir=sys.argv[3]
+
+        # accounting for output dir
+        if len(sys.argv) in (4,5) and mode=='--all':
+            file_list=None
+            if len(sys.argv)==4:
+                output_dir=None
+
+            elif not os.path.isdir(sys.argv[4]):
+                print("Invalid Output Path. Exiting Code...")
                 exit(1)
-            fasta_for_spf(mode,input_dir,output_dir)
 
-    elif len(sys.argv) in (4,5) and sys.argv[1]=='--list':
-        mode = sys.argv[1]
-        input_dir=sys.argv[2]
-        file_list=sys.argv[3]
+            else:
+                output_dir=sys.argv[4]
 
+        elif len(sys.argv) in (5,6) and mode=='--list':
+            file_list=sys.argv[4]
+            if not (os.path.isfile(file_list) and file_list.endswith('.txt')):
+                print("Invalid text file path. Exiting Code...")
+                exit(1)
+
+            elif len(sys.argv)==5:
+                output_dir=None
+
+            elif not os.path.isdir(sys.argv[5]):
+                print("Invalid Output Path. Exiting Code...")
+                exit(1)
+            else:
+                output_dir=sys.argv[5]   
+    
+        else: 
+            print("Syntax Error. Exiting Code...")
+            exit(1)
+
+        # accounting for validity of inputpath
         if not os.path.isdir(input_dir):
-            print("Invalid Input folder path. Exiting Code.")
-            exit(1)
-        elif not os.path.isfile(file_list) and file_list.endswith('.txt'):
-            print("Invalid text file path. Exiting Code.")
+            print("Invalid input folder. Exiting Code...")
             exit(1)
 
-        elif len(sys.argv) ==4:
-            output_dir=input_dir
-        elif len(sys.argv) ==5:
-            output_dir=sys.argv[4]
-
-        if not os.path.isdir(output_dir):
-            print("Invalid Output folder path. Exiting Code.")
-            exit(1)
-        
         fasta_for_spf(mode,input_dir,output_dir,file_list)
 
+    # for output for SUPFAM web tool
+    elif (len(sys.argv) in (4,5) and sys.argv[1]=='--output'):
+        spf_file=sys.argv[2]
+        ref_file=sys.argv[2]
+
+        for i in (spf_file,ref_file):
+            if not (os.path.isfile(i) and i.endwith('.txt')):
+                print('Invalid File Path')
+                exit(1)
+        
+        if len(sys.argv)==4:
+            output_dir=None
+        
+        elif not os.path.isdir(sys.argv[4]):
+            print("Invalid Output Path. Exiting Code...")
+            exit(1)
+        
+        else:
+           output_dir=sys.argv[4]
+        
+        ScopParse(spf_file,ref_file,output_dir)
 
     else:
         print("ScopGet.py → USAGE:")
-        print("1. To Get Fasta file input for Superfamily Web Tool:")
-        print("For all files in a folder")
-        print("\tpython ScopGet.py --all <input dir>\t OR")
-        print("\tpython ScopGet.py --all <input dir> <output dir>")
+        print("To Get Fasta file input for Superfamily Web Tool ")
+        print("\tFor all files in a folder:")
+        print("\t\tpython ScopGet.py --input --all <input dir>\t OR")
+        print("\t\tpython ScopGet.py --input --all <input dir> <output dir>")
         print("For a list of files:")
-        print("\tpython ScopGet.py --list <input dir> <text file containing list>\t OR")
-        print("\tpython ScopGet.py --list <input dir> <text file containing list> <output dir>")
+        print("\t\tpython ScopGet.py --input --list <input dir> <text file containing list>\t OR")
+        print("\t\tpython ScopGet.py --input --list <input dir> <text file containing list> <output dir>")
+        print()
+        print("To Parse Superfamily Web Tool Output ")
+        print("\t\tpython ScopGet.py --ouput <SUPERFAM output file> <reference file>\t OR")
+        print("\t\tpython ScopGet.py --ouput <SUPERFAM output file> <reference file> <output dir>")
+        print() 
