@@ -4,7 +4,7 @@
 
 import os, sys, PDB_modules as PDBm
 
-# generate input SPF file
+# generate input combined fasta file for SUPERFAM
 def fasta_for_spf(mode,in_dir,out_dir=os.getcwd(),ref_file=None):
   
     # getting list of all PDB files in the folder
@@ -13,7 +13,7 @@ def fasta_for_spf(mode,in_dir,out_dir=os.getcwd(),ref_file=None):
     pdb_list=[]
     for PDBfile in os.listdir(in_dir):
         PDB_filepath=os.path.join(in_dir,PDBfile)
-        if os.path.isfile(PDB_filepath) and PDBfile.startswith('AF-') and PDBfile.endswith('.pdb'):
+        if os.path.isfile(PDB_filepath) and PDBfile.endswith('.pdb'):
             pdb_list.append(PDB_filepath)
                 
     ##print(pdb_list)        
@@ -67,35 +67,49 @@ def fasta_for_spf(mode,in_dir,out_dir=os.getcwd(),ref_file=None):
     
     print("Fasta Files written")
 
+
+# parsing SUPERFAM output    
 def ScopParse(inputSCOP,spfREF,outpath=None):    
-    with open(inputSCOP,'r') as scopIN:
+
+    print("Reading reference files")
+
+    with open(inputSCOP,'r') as scopIN:     # SUPERFAM output file
         ref1= scopIN.readlines()
 
-    with open(spfREF, 'r') as spfIN:
+    with open(spfREF, 'r') as spfIN:        # file containing family names
         ref2= spfIN.readlines()
 
     dict={} # to store all protein names with assignment and corresponding residues
     SPFdict={} # to store all family names for corresponding SUPFAM ID numbers
 
+    # running through SUPERFAM o/p
     for line in ref1:
-        protein = line.split()[0]
+        protein = line.split()[0]   # accession number
         if protein not in dict:
             dict[protein]={}
 
-        scop_ref = int(line.split()[-1])
+        scop_ref = int(line.split()[-1])    # SUPERFAM id number
 
-        if ',' in line.split()[2]:
+        # amino acid ranges for assignment
+        if ',' in line.split()[2]:  
             res_range = line.split()[2].split(',')
         else:    
             res_range = [line.split()[2]]
 
         dict[protein][scop_ref]=res_range
 
+        # running through SUPERFAM assignment file
         for line in ref2[5:]:    
-            if scop_ref == int(line.split('\t')[8]):
+            if scop_ref == int(line.split('\t')[8]): # SUPERFAM id number
                 if scop_ref not in SPFdict:
-                    SPFdict[scop_ref]= line.split('\t')[9]
+                    SPFdict[scop_ref]= [str(line.split('\t')[6]),str(line.split('\t')[-2])]
+                    # ^^ for the superfamily ID number, we get the family and superfamily name in a dictionary
+
+    print("Dictionaries completed!")
         
+    # dict= {acession: {SUPERFAM ID1: [aa range(s)], SUPERFAM ID2: [aa range(s)] } }
+    # SPFdict= {SUPERFAM ID1: [Superfamily name, Family name], SUPERFAM ID2: [Superfamily name, Family name]}
+
     if outpath==None:
         outpath=os.getcwd()
 
@@ -105,19 +119,23 @@ def ScopParse(inputSCOP,spfREF,outpath=None):
         count+=1
         outfile=f'{outfile[:-4]}({count}).txt'
 
+    print(f"Writing {outfile}...")
+
     ##print(SPFdict)
     with open(outfile,'w') as out_f:
         out_f.write("Protein Accession\tStart Res\tEnd Res\t")
-        out_f.write("Superfam ID\t Protein Family\n")
-        for protein in dict:
+        out_f.write("Protein Family\tProtein Superfamily\tSuperfam ID\n")
+
+        for protein in dict: 
             for one_scop in dict[protein]:
                 for res_range in dict[protein][one_scop]:
                     if one_scop in SPFdict:
                         out_f.write(f"{protein}\t{res_range.split('-')[0]}\t{res_range.split('-')[1]}\t")
-                        out_f.write(f"{SPFdict[one_scop]}\t{one_scop}\n")
+                        out_f.write(f"{SPFdict[one_scop][0]}\t{SPFdict[one_scop][-1]}\t{one_scop}\n")
                     else:
-                        out_f.write(f"{protein}\t{res_range.split('-')[0]}\t{res_range.split('-')[1]}\t--\t{one_scop}\n")
+                        out_f.write(f"{protein}\t{res_range.split('-')[0]}\t{res_range.split('-')[1]}\tNA\tNA\t{one_scop}\n")
          
+    print("Completed!\n")
 
 if __name__=="__main__":
     # for input for SUPFAM web tool
