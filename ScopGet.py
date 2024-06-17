@@ -138,8 +138,9 @@ def ScopParse(inputSCOP,spfREF,outpath=None):
     print("Completed!\n")
 
 if __name__=="__main__":
+
     # for input for SUPFAM web tool
-    if (len(sys.argv) in (4,5,6) and sys.argv[1]=='--input'):
+    if len(sys.argv) in (4,5,6) and sys.argv[1]=='--input':
         mode=sys.argv[2]
         input_dir=sys.argv[3]
 
@@ -183,12 +184,12 @@ if __name__=="__main__":
         fasta_for_spf(mode,input_dir,output_dir,file_list)
 
     # for output for SUPFAM web tool
-    elif (len(sys.argv) in (4,5) and sys.argv[1]=='--output'):
+    elif len(sys.argv) in (4,5) and sys.argv[1]=='--output':
         spf_file=sys.argv[2]
-        ref_file=sys.argv[2]
+        ref_file=sys.argv[3]
 
         for i in (spf_file,ref_file):
-            if not (os.path.isfile(i) and i.endwith('.txt')):
+            if not (os.path.isfile(i) and i.endswith('.txt')):
                 print('Invalid File Path')
                 exit(1)
         
@@ -210,11 +211,11 @@ if __name__=="__main__":
         print("\tFor all files in a folder:")
         print("\t\tpython ScopGet.py --input --all <input dir>\t OR")
         print("\t\tpython ScopGet.py --input --all <input dir> <output dir>")
-        print("For a list of files:")
+        print("\tFor a list of files:")
         print("\t\tpython ScopGet.py --input --list <input dir> <text file containing list>\t OR")
         print("\t\tpython ScopGet.py --input --list <input dir> <text file containing list> <output dir>")
         print()
         print("To Parse Superfamily Web Tool Output ")
-        print("\t\tpython ScopGet.py --ouput <SUPERFAM output file> <reference file>\t OR")
-        print("\t\tpython ScopGet.py --ouput <SUPERFAM output file> <reference file> <output dir>")
+        print("\t\tpython ScopGet.py --output <SUPERFAM output file> <reference file>\t OR")
+        print("\t\tpython ScopGet.py --output <SUPERFAM output file> <reference file> <output dir>")
         print() 
