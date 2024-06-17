@@ -1,6 +1,6 @@
 # FAuto.py
-# single hashes for info. double hashes for debugging/alternate code
 # move files to flapp folder + generate pairs.txt + run FLAPP
+# single hashes for info. double hashes for debugging/alternate code
 
 # IMPORTANT: this code only works if it is in the same directory as the FLAPP directory
 
@@ -21,13 +21,7 @@ def address_list(folderpath):
     return arr_of_add
 
 # writing pairwise matrix of files
-def write_pairs(mode, list1, list2):
-
-    # deciding file name based on FLAPP mode
-    if mode== '--f2self':
-        basename='SELF_Pairs'
-    elif mode=='--f2temp':
-        basename='TEMP_Pairs'
+def write_pairs(basename, list1, list2):
 
     filepath = os.path.join(FLAPP_path,f'{basename}.txt')
     count=0
@@ -55,12 +49,9 @@ def main(mode, pocket_path, template_path, cores):
         basename='SELF_'
     elif mode=='--f2temp':
         basename='TEMP_'
-    count=0
-
-    # writing the pairfile
-    pair_file=os.path.split(write_pairs(mode, af_temp,template_temp))[-1] 
-
+    
     # for BindingSite
+    count=0
     BS_dir=os.path.join(FLAPP_path,f'{basename}BindingSites')
     while os.path.exists(BS_dir):
         count+=1
@@ -71,6 +62,7 @@ def main(mode, pocket_path, template_path, cores):
     print(f"{BS_dir_asvar} Folder Generated")
 
     # for SiteVector
+    count=0
     SV_dir=os.path.join(FLAPP_path,f'{basename}SiteVector')
     while os.path.exists(SV_dir):
         count+=1
@@ -80,6 +72,9 @@ def main(mode, pocket_path, template_path, cores):
     # get address of all necessary files
     af_temp=address_list(pocket_path)
     template_temp=address_list(template_path)
+
+    # writing the pairfile
+    pair_file=os.path.split(write_pairs(basename, af_temp,template_temp))[-1] 
     
     # moving necessary files
     for i in af_temp:
@@ -110,13 +105,13 @@ def main(mode, pocket_path, template_path, cores):
 if __name__ == "__main__":
     if len(sys.argv) ==5 and sys.argv[1] =='--f2temp':
         mode=sys.argv[1]
-        af_dir = sys.argv[2] # path to pocket PDB files
-        temp_dir = sys.argv[3] # path to template directory
-        core_no= sys.argv[4] #no. of cores
+        af_dir = sys.argv[2]    # path to pocket PDB files
+        temp_dir = sys.argv[3]  # path to template directory
+        core_no= sys.argv[4]    # no. of cores
         
         if not (os.path.isdir(af_dir) and os.path.isdir(temp_dir)):
             print("Invalid path name(s). Exiting Code.")
-            sys.exit(1)
+            exit(1)
     
         print("Running FLAPP...")
         main(mode,af_dir,temp_dir,core_no)
@@ -128,11 +123,10 @@ if __name__ == "__main__":
     
         if not os.path.isdir(af_dir):
             print("Invalid path name(s). Exiting Code.")
-            sys.exit(1)
+            exit(1)
 
         print("Running FLAPP...")
         main(mode,af_dir,af_dir,core_no)
-      
 
     else:
         print("FAuto.py → USAGE:")
