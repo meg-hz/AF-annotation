@@ -6,7 +6,6 @@ import os, sys, requests
 from bs4 import BeautifulSoup
 
 def get_ligand(molcode):
-
     molcode=str(molcode).strip() #removing whitespaces 
 
     response = requests.get(f'https://www.ebi.ac.uk/pdbe-srv/pdbechem/chemicalCompound/show/{molcode[:3]}')
@@ -90,5 +89,5 @@ if __name__ == "__main__":
     
     else:
         print("FLigand.py → USAGE:")
-        print("\tFLigand.py <path to alignment/threshold file>")
-        print("\tFLigand.py <path to alignment/threshold file> <path to output dir>")
+        print("\tpython FLigand.py <path to alignment/threshold file>")
+        print("\tpython FLigand.py <path to alignment/threshold file> <path to output dir>")
