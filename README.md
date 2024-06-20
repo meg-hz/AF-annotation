@@ -1,189 +1,273 @@
 # AF Annotation Code Set
 A collection of scripts used to generate and obtain information from Human protein files retrieved from the Alphafold repository.
 ## Table of Contents
--  Basic Protein related
-	1. PDB_modules.py
-	2. UPGet.py
-- Superfamily-related
-	1. ScopGet.py
-- Pocket-related
-	1. PockGet.py 
-	2. PockComp.py
-- FLAPP-related
-	1. FAuto.py
-	2. FOut.py
-	3. SelftoCytos
+**Basic Protein related**
+1. [PDB_modules.py](#head1)
+2. [UPGet.py](#head2)
+   
+**Pocket-related**
+1. [PockGet.py](#head3)
+2. [PockComp.py](#head4)
+   
+**Superfamily-related**
+1. [ScopGet.py](#head5)
+2. [PocketScop.py](#head6)
+
+**FLAPP-related**
+1. [FAuto.py](#head7)
+2. [FOut.py](#head8)
+3. [FLigand.py](#head9)
 
 ---
-## UPGet.py
-This code searches through the Uniprot database for a protein given a particular input query (or a list of queries in the form of a .txt file) and generates an output file containing the query, protein accession number, protein name and gene ID
+<h2 id=head1> PDB_modules.py </h2>
+
+- A set of scripts to run basic test parsing on a .pdb file
+
+### Usage
+
+**1. To generate Fasta from PDB files:**
+
+**a. For a single file**
+```
+python PDB_modules.py --fasta -file <path to pdb file> <path to output dir/ optional>
+```
+**b. For all PDB files in a folder**
+```
+python PDB_modules.py --fasta -all <path to dir with pdb files> <path to output dir/ optional>
+```
+**c. Using a set of fragment files in a folder**
+```
+python PDB_modules.py --fasta -frag <path to dir with fragment files> <path to output dir/ optional>
+```
+\
+**2. To obtain information of all files in the folder:**
+```
+python PDB_modules.py --metadata <path to dir with pdb files> <path to output dir/ optional>
+```
+\
+**3. To generate Residue v/s Confidence graph for a PDB file:**
+```
+python PDB_modules.py --conf <path to pdb file> <path to output dir/ optional>
+```
+\
+**4. To generate an output PDB with only binding site region for a ligand:**
+```
+python PDB_modules.py --bsite <HETATM code> <path to pdb file> <path to output dir/ optional>
+```
+\
+**Points to Note**
+- The last module will not work on alphafold files as they don't have a HETATM code
+
+---
+<h2 id=head2> UPGet.py </h2>
+
+- This code searches through the Uniprot database for a protein given a particular input query (or a list of queries in the form of a .txt file) and generates an output file containing the query, protein accession number, protein name and gene ID
+
 ### Usage
 **1. For a single query**
 ```
-python UPget.py <query>   
+python UPGet.py --single <refseqID>   
 ```
 or
 ```
-python UPGet.py <refseqID> <output dir>
+python UPGet.py --single <refseqID> <output dir>
 ```
-
+\
 **2. For a list of queries**
 ```
-python UPget.py <path to .txt file with queries>
+python UPGet.py --list <path to .txt file with list of refseq IDs>
 ```
 or
 ```
-python UPget.py <path to .txt file with queries> <output dir>
+python UPGet.py --list <path to .txt file with list of refseq IDs> <output dir>
 ```
-
+\
 **Points To Note:**
 - This code was initially written to obtain protein details for a given RefSeq ID, hence only single word query input is accepted
 ---
-## ScopGet.py
-This code generates the input fasta file for `Superfamily` webtool and analyzes the machine readable output file
-### Usage
-**1. To get Fasta file input for all files in a folder**
-```
-python ScopGet.py --all <input dir>
-```
-or
-```
-python ScopGet.py --all <input dir> <output dir>
-```
+<h2 id=head3> PockGet.py </h2>
 
-**2. To get Fasta file input for a list of files in a folder**
-```
-python ScopGet.py --list <input dir> <text file containing list>
-```
-or
-```
-python ScopGet.py --list <input dir> <text file containing list> <output dir>
-```
-
-**3. To analyze output from Superfamily Web Tool**
-```
-python ScopGet.py --spf <input file>
-```
-or
-```
-python ScopGet.py --spf <input file> <output dir>
-```
-
-**Points To Note:**
-- The Superfamily Web Tool is accessible [here](https://supfam.mrc-lmb.cam.ac.uk/SUPERFAMILY/hmm.html)
----
-## PockGet.py
 - This code runs `Fpocket`, `Sitehound` and `PocketDepth` for a single protein or a set of proteins when given a filename or a list of file names.
+
 ### Usage
-**1. For a single file:**
+**1. Running all pocket tools one after another**
+**a. For a list of files:**
 ```
-python PockGet.py --list <path to input dir> <protein accession/filename>
-```
-
-**2. For a set of files:**
-```
-python PockGet.py --list <path to input directory> <path to .txt file containing file names>
+python PockGet.py --all --list <path to input directory> <path to file containing list of file names>
 ```
 
-**3. For all files in the folder**
+**b. For all files in the directory**
 ```
-python PockGet.py --all <path to input directory> 
+python PockGet.py --all --dir <path to input dir>
+```
+\
+**2. Running a specific pocket prediction tool** 
+(replace `<mode>` with `--fpocket`, `--sitehound` or `--pocketdepth` depending on tool)
+
+**a. For a list of files:**
+```
+python PockGet.py <mode> --list <path to input directory> <path to reference file>
 ```
 
-The output pocket files from each pipeline are added to a new/existing directory- `protein_results` directory present in the working directory.
-
+**b. For all files in the directory**
+```
+python PockGet.py <mode> --dir <path to input dir>
+```
+\
 **Points To Note:**
+- Fpocket available [here](https://github.com/Discngine/fpocket).  EasyMifs and Sitehound available [here](https://github.com/thecodingdoc/easymifs) and [here](https://github.com/thecodingdoc/sitehound) respectively.
 - `Fpocket`, `Sitehound` and `PocketDepth` executable directories and the python file must be in the same parent folder
 - `PocketDepth` is a 32bit executable and requires installation of appropriate architectures
 - `Sitehound` runs on `python2.7` and will generate errors on higher versions of the compiler
   
-- Additionally, for a batch of several proteins of large file size, `Sitehound` and `PocketDepth` take a considerable amount of time- hence it is more efficient to run the them separately rather than using this code.
+- Additionally, for a batch of several proteins of large file size, `Sitehound` and `PocketDepth` take a considerable amount of time- hence it is more efficient to run a one tool at a time for a set of files using the `<mode>` function. 
 ---
-## PockComp.py
-- This code compares the outputs between pocket files generated by all three pipelines. It can  generate a TSV with file matching information and consensus pockets as well.
+<h2 id=head4> PockComp.py </h2>
+
+- This code compares the outputs between pocket files generated by all three pipelines and filters pockets that have overlapping residues. The low confidence files are also filtered in the process
+
 ### Usage
-**1. To get TSV of matched pockets:**
+**1. To generate consensus pockets files (only containing residues matching between all three pocket tools)**
 ```
-python PockComp.py --txt <path to dir with pocket files>
+python PockComp.py --pdb <path to dir with reference protein files> <path to dir with pocket files>
 ```
-This command generates a .tsv file with paths of matching pockets from all three pipelines<br> 
-**2. To get .PDB files of consensus pockets:** 
+\
+**2. To Finalize PocketDepth files:** 
 ```
-python PockComp.py --pdb <path to protein-files-dir> <path to pocket-files-dir>
+python PockComp.py --pkd <path to dir with pocket files>
 ```
-This command creates a folder called `matches` for each protein folder and generates pocket files containing residues common between the output pocket files from all three pipelines
-
-**3. To move out pockets with low confidence residues**:
-```
-python PockComp.py --lcf <path to pocket-files-dir>
-```
-This creates a folder called `low_conf` within the `matches` subfolder for each protein. All consensus pocket files that contain more than 30% residues with lower than 70% confidence score are moved into `low_conf`
-
+\
 **Points To Note:**
-- This script is written as the next step to `PockGet.py`, hence the file-handling is also considered accordingly- `pocket-files-dir` refers to the path of `protein_results` directory
-- The `pocket-files-dir` refers to path of the directory containing the original .PDB file of the proteins
-- This code generates protein pockets for all protein folders in `protein_results` directory and the output  files for each protein are stored within the folder itself
+- This script is written as the next step to `PockGet.py`, hence the file-handling is also considered accordingly- `dir with pocket files` refers to the `PocketResults` directory generated using after running `PockGet.py` for all pockets
+- The `reference protein files` refers to the original .PDB files of the proteins
+- This code generates protein pockets for all protein folders in same directory as the pocket files and the output files for each protein are stored within the `PocketResults` directory 
 ---
-## FAuto.py
+<h2 id=head5> ScopGet.py </h2>
+
+- This code generates the input fasta file for `Superfamily Web Tool` and analyzes the machine readable output file.
+
+### Usage
+**1. To get Fasta file input for all files in a folder**
+```
+python ScopGet.py --input --all <input dir>
+```
+or
+```
+python ScopGet.py --input --all <input dir> <output dir>
+```
+\
+**2. To get Fasta file input for a list of files in a folder**
+```
+python ScopGet.py --input --list <input dir> <text file containing list>
+```
+or
+```
+python ScopGet.py --input --list <input dir> <text file containing list> <output dir>
+```
+\
+**3. To analyze output from Superfamily Web Tool**
+```
+python ScopGet.py --output <SUPERFAM output file> <reference file>
+```
+or
+```
+python ScopGet.py --output <SUPERFAM output file> <reference file> <output dir>
+```
+\
+**Points To Note:**
+- This script imports modules from `PDB_modules.py` and only works if they are both present in the same directory.
+- The `Superfamily Web Tool` is accessible [here](https://supfam.org/).  The fasta file generated using `--input` code above needs to be uploaded (only one file can be uploaded at a time)
+- Once the output is generated, a machine readable output file can be downloaded from the bottom of the page. 
+- The reference file used to analyze output is a domain assignment file for the particular organism of study. The different organisms can be found [here](https://supfam.org/genome/hierarchy). The Domain Assignment file for Humans (*Homo sapiens*) can be accessed under downloads [here](https://supfam.org/genome/hs) 
+---
+<h2 id=head6> PocketScop.py </h2>
+
+- This code uses the output file from `ScopGet.py` to provide superfamily assignment
+
+### Usage
+```
+python PocketScop.py <path to directory with pocket files> <path to SCOPGet.py output file>
+```
+
+- `Directory with pocket files` refers to the output directory generated in `PockComp.py`
+---
+<h2 id=head7> FAuto.py </h2>
+
 - This code generates the pairs.txt file and to automate the FLAPP command for a set of files.
+
 ### Usage
 
 **1. To run FLAPP between pocket files and template files**
 ```
 FAuto.py --f2temp <path to pocket-file-dir> <path to template directory> <no of cores>
 ```
-This generates an .txt alignment file in the `FLAPP` directory with information on alignment between the pocket files and template files.
-
-**2.. To run FLAPP only among the pocket files**
+\
+**2. To run FLAPP only among the pocket files**
 ```
 FAuto.py --f2self <path to pocket-file-dir> <no of cores>
 ```
-This generates an .txt alignment file in the `FLAPP` directory with information on alignment between all pocket files
-
+\
 **Points To Note:**
 - The environment file within the `FLAPP` directory needs to be setup first. (No need to activate the environment before running the code)
 - This script is written as the next step to `PockGet.py`, hence the file-handling is also considered accordingly- `pocket-files-dir`  refers to the path of `protein_results` directory
 ---
-## FOut.py
+<h2 id=head8> FOut.py </h2>
+
 - This code generates threshold files from the given alignment file by only extracting alignments where the Fmin is within a given cutoff value
 - From the threshold output files generated above, it can also provide information on the number of instances of the aligned proteins as well as their pockets
+
 ### Usage
 
-**1. To generate threshold file from the outfile for a given Fmin threshold**
+**1. To generate threshold file from the outfile** 
+**a. Generating a single file for a given Fmin cutoff**
 ```
-FAuto.py --fmin <path to alignment file> <cutoff>
+FAuto.py --fmin <cutoff> <path to alignment file> 
 ```
-This generates a .txt file in the `FLAPP` directory with entries only for alignments that are within the inputted cutoff.
 
-**2. To generate threshold files for intervals of 40,50,60,70,80 and 90**
+**b. Generating a set of files for intervals ranging 40 to 90**
 ```
-FAuto.py --fmin <path to alignment file> -all
+FAuto.py --fmin -all <path to alignment file>
 ```
-This generates a folder containing .txt threshold files in the `FLAPP` directory for a given alignment file for threshold intervals 40 to 90 at intervals of 10 each
+\
+**2. To generate Cytoscape input from threshold file(s)**
+**a. For a single threshold file**
+```
+FOut.py --fcytos <path to threshold file>
+```
 
-**3. To generate reports on protein and pocket instances for a given threshold file**
+**b. For all threshold files in a folder**
+```
+ FOut.py --fcytos -all  <path to folder with threshold files>
+```
+\
+**3. To generate frequency analysis from threshold file(s)** 
+**a. For a given threshold file**
 ```
 python FAuto.py --fset <path to threshold file>
 ```
-This generates a .tsv file in the same folder as threshold file with information on the number of alignments for each pocket file for a given accession number
 
-**4. To generate reports on protein and pocket instances for all threshold files in the folder**
+**b. For all threshold files in the folder**
 ```
-python FAuto.py --fset <path to folder containing threshold files> -all
+python FAuto.py --fset -all <path to folder containing threshold files>
 ```
-This generates a collection of .tsv files for each threshold file in the folder with information on the number of alignments for each pocket file for a given accession number
-
+\
 **Points To Note:**
 - This script is written as the next step to `FAuto.py`, hence the file-handling is also considered accordingly- the `alignment file` referred to here is the output file generated in `FAuto.py`
+
 ---
-## Flapp2Cytos.py
-- This code takes the alignment file as input and generates a network file for Cytoscape.
-- The alignment file can either be used directly, or the threshold files can be given as input instead 
+<h2 id=head9> FLigand.py </h2>
+
+- To generate a table with alignment information from FLAPP output. (Also contains information about pocket and the corresponding ligand codes and ligand names for their aligned binding sites)
+
 ### Usage
 ```
-python FlappToCytos.py <path to alignment file>
+python FLigand.py <path to alignment/threshold file>
 ```
-or
+OR
 ```
-FlappToCytos.py <path to alignment file> <path to output dir>
+python FLigand.py <path to alignment/threshold file> <path to output dir>
 ```
+\
+**Points to Note:**
+- This code sends requests to [Dictionary of Chemical Components in PDBe](https://www.ebi.ac.uk/pdbe-srv/pdbechem/) and will only work in the presence of good internet
+---
