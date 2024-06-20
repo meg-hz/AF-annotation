@@ -83,4 +83,4 @@ if __name__ == "__main__":
     
     else:
         print("PocketScop.py → USAGE:")
-        print("python PocketScop.py <path to directory with pocket files> <path to SCOP assignment file>")
+        print("python PocketScop.py <path to directory with pocket files> <path to SCOPGet.py output file>")
