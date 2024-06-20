@@ -1,4 +1,4 @@
-# PockLigand.py
+# FLigand.py
 # obtain all unique ligands for a protein from an alignment file
 # single hashes for info. double hashes for debugging/alternate code
 
@@ -71,6 +71,6 @@ if __name__ == "__main__":
         findLigands(inpath,outpath)
     
     else:
-        print("PockLigand.py → USAGE:")
-        print("\tPockLigand.py <path to alignment/threshold file>")
-        print("\tPockLigand.py <path to alignment/threshold file> <path to output dir>")
+        print("FLigand.py → USAGE:")
+        print("\tFLigand.py <path to alignment/threshold file>")
+        print("\tFLigand.py <path to alignment/threshold file> <path to output dir>")
