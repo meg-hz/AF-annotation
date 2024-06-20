@@ -72,5 +72,5 @@ if __name__ == "__main__":
     
     else:
         print("PockLigand.py → USAGE:")
-        print("\tPockLigand.py <path to alignment file>")
-        print("\tPockLigand.py <path to alignment file> <path to output dir>")
+        print("\tPockLigand.py <path to alignment/threshold file>")
+        print("\tPockLigand.py <path to alignment/threshold file> <path to output dir>")
